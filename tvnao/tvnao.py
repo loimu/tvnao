@@ -262,11 +262,12 @@ class Settings(QtWidgets.QDialog):
         self.ui.epgIndex.setText(self.settings.value('epg/index', type=str))
         self.ui.epgURL.setText(self.settings.value('epg/url', type=str))
         aliases = self.settings.value('epg/aliases', type=str).split('|')
-        if not ',' in aliases[0]:
+        divider = ','
+        if not divider in aliases[0]:
             return
         self.ui.tableAliases.setRowCount(len(aliases))
         for i, alias in enumerate(aliases):
-            pair = alias.split(',')
+            pair = alias.split(divider)
             if len(pair) > 1:
                 self.ui.tableAliases.setItem(i, 0, QtWidgets.QTableWidgetItem(pair[0]))
                 self.ui.tableAliases.setItem(i, 1, QtWidgets.QTableWidgetItem(pair[1]))
