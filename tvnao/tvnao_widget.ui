@@ -90,9 +90,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="buttonMenu">
-       <property name="toolTip">
-        <string>Refresh channel list</string>
-       </property>
        <property name="text">
         <string>Menu</string>
        </property>

@@ -67,7 +67,6 @@ class Ui_Form(object):
         self.guideFullButton.setText(_translate("Form", "Full"))
         self.guideNextButton.setText(_translate("Form", "Tomorrow"))
         self.lineEditFilter.setPlaceholderText(_translate("Form", "Filter ..."))
-        self.buttonMenu.setToolTip(_translate("Form", "Refresh channel list"))
         self.buttonMenu.setText(_translate("Form", "Menu"))
         self.buttonGo.setToolTip(_translate("Form", "Play selected channel"))
         self.buttonGo.setText(_translate("Form", "Watch"))

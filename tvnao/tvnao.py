@@ -96,6 +96,8 @@ class MainWindow(QtWidgets.QWidget):
             self.ui.listWidget.setCurrentRow(0)
 
     def player_detect(self):
+        if 'win' in sys.platform:
+            return 'mpv.exe'
         return subprocess.getoutput('which mpv mplayer mplayer2').split('\n')[0]
 
     def first_run(self):
@@ -302,7 +304,8 @@ class Settings(QtWidgets.QDialog):
         self.ui.tableAliases.removeRow(self.ui.tableAliases.currentRow())
 
 def main():
-    signal.signal(signal.SIGCHLD, signal.SIG_IGN)
+    if 'linux' in sys.platform:
+        signal.signal(signal.SIGCHLD, signal.SIG_IGN)
     app = QtWidgets.QApplication(sys.argv)
     tv_widget = MainWindow()
     tv_widget.setWindowIcon(QtGui.QIcon.fromTheme('video-television'))
