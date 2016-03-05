@@ -134,7 +134,7 @@ class MainWindow(QtWidgets.QWidget):
             if line.startswith('#EXTINF'):
                 counter += 1
                 name = '%s. %s' % (counter, line.split(',')[1])
-            elif line.startswith('udp://'):
+            elif line.startswith('udp://') or line.startswith('http://'):
                 addr = line
                 self.list.append((name, addr))
 
