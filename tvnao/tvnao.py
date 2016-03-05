@@ -30,23 +30,9 @@ class MainWindow(QtWidgets.QWidget):
         super(MainWindow, self).__init__()
         self.ui = Ui_Form()
         self.ui.setupUi(self)
-        # loading settings
         if not self.settings.value('tvnao/configured', type=bool):
             self.first_run()
-        self.playlist_host = self.settings.value('playlist/host', type=str)
-        self.playlist_url = self.settings.value('playlist/url',type=str)
-        self.player = self.settings.value('player/path', type=str)
-        self.options = self.settings.value('player/options', type=str)
-        self.epg_host = self.settings.value('epg/host', type=str)
-        self.epg_url = self.settings.value('epg/url', type=str)
-        self.epg_index = self.settings.value('epg/index', type=str)
-        if not self.settings.value('epg/cache', type=bool):
-            self.refresh_guide_index()
-        cache = self.settings.value('epg/cache', type=str).split('|')
-        for i, entry in enumerate(cache):
-            pair = entry.split(',')
-            if len(pair) > 1:
-                self.index[pair[0]] = pair[1]
+        self.load_settings()
         # actions setup
         quit_action = QtWidgets.QAction(self)
         self.addAction(quit_action)
@@ -112,6 +98,22 @@ class MainWindow(QtWidgets.QWidget):
         self.settings.setValue('epg/aliases', '')
         self.settings.setValue('tvnao/configured', True)
 
+    def load_settings(self):
+        self.playlist_host = self.settings.value('playlist/host', type=str)
+        self.playlist_url = self.settings.value('playlist/url',type=str)
+        self.player = self.settings.value('player/path', type=str)
+        self.options = self.settings.value('player/options', type=str)
+        self.epg_host = self.settings.value('epg/host', type=str)
+        self.epg_url = self.settings.value('epg/url', type=str)
+        self.epg_index = self.settings.value('epg/index', type=str)
+        if not self.settings.value('epg/cache', type=bool):
+            self.refresh_guide_index()
+        cache = self.settings.value('epg/cache', type=str).split('|')
+        for i, entry in enumerate(cache):
+            pair = entry.split(',')
+            if len(pair) > 1:
+                self.index[pair[0]] = pair[1]
+
     def send_request_get(self, host, loc):
         conn = http.client.HTTPConnection(host, timeout=10)
         try:
@@ -158,7 +160,10 @@ class MainWindow(QtWidgets.QWidget):
                 self.ui.listWidget.addItem(item)
 
     def run_player(self):
-        command = [self.player, self.options, self.ui.listWidget.currentItem().address]
+        command = [self.player]
+        if self.options != '':
+            command.append(self.options)
+        command.append(self.ui.listWidget.currentItem().address)
         process = subprocess.Popen(command, stdin=subprocess.DEVNULL,
                                    stdout=subprocess.DEVNULL,
                                    stderr=subprocess.DEVNULL)
@@ -240,6 +245,7 @@ class MainWindow(QtWidgets.QWidget):
     def show_settings(self):
         settings_dialog = Settings()
         settings_dialog.exec_()
+        settings_dialog.destroyed.connect(self.load_settings)
 
     def show_about(self):
         QtWidgets.QMessageBox.about(self, 'About tvnao',
