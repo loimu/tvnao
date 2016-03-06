@@ -53,6 +53,7 @@ class Ui_Form(object):
         self.buttonGo.setObjectName("buttonGo")
         self.horizontalLayout.addWidget(self.buttonGo)
         self.buttonGuide = QtWidgets.QPushButton(Form)
+        self.buttonGuide.setMaximumSize(QtCore.QSize(30, 16777215))
         self.buttonGuide.setCheckable(True)
         self.buttonGuide.setObjectName("buttonGuide")
         self.horizontalLayout.addWidget(self.buttonGuide)

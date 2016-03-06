@@ -10,10 +10,10 @@ import datetime
 import re
 import signal
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import QSettings, pyqtSlot
+from PyQt5.QtCore import pyqtSlot
 
 from .tvnao_widget import Ui_Form
-from .settings_dialog import Ui_Dialog
+from .settings import Settings
 
 class ListItem(QtWidgets.QListWidgetItem):
     address = ''
@@ -24,15 +24,22 @@ class ListItem(QtWidgets.QListWidgetItem):
 class MainWindow(QtWidgets.QWidget):
     list = []
     index = {}
-    settings = QSettings('tvnao', 'tvnao')
 
     def __init__(self):
         super(MainWindow, self).__init__()
         self.ui = Ui_Form()
         self.ui.setupUi(self)
-        if not self.settings.value('tvnao/configured', type=bool):
-            self.first_run()
+        # loading settings
+        Settings.first_run()
         self.load_settings()
+        if not Settings.settings.value('epg/cache', type=bool):
+            self.refresh_guide_index()
+        else:
+            cache = Settings.settings.value('epg/cache', type=str).split('|')
+            for i, entry in enumerate(cache):
+                pair = entry.split(',')
+                if len(pair) > 1:
+                    self.index[pair[0]] = pair[1]
         # actions setup
         quit_action = QtWidgets.QAction(self)
         self.addAction(quit_action)
@@ -81,38 +88,14 @@ class MainWindow(QtWidgets.QWidget):
         if self.ui.listWidget.count() > 0:
             self.ui.listWidget.setCurrentRow(0)
 
-    def player_detect(self):
-        if 'win' in sys.platform:
-            return 'mpv.exe'
-        return subprocess.getoutput('which mpv mplayer mplayer2').split('\n')[0]
-
-    def first_run(self):
-        print('adding config options...')
-        self.settings.setValue('playlist/host', 'iptv.isp.domain')
-        self.settings.setValue('playlist/url', '/iptv_playlist.m3u')
-        self.settings.setValue('player/path', self.player_detect())
-        self.settings.setValue('player/options', '--network-timeout=60')
-        self.settings.setValue('epg/host', 'www.tvguide.domain')
-        self.settings.setValue('epg/url', '/engine/modules/EPG/ViewProgramForOneDay.php')
-        self.settings.setValue('epg/index', '/epg')
-        self.settings.setValue('epg/aliases', '')
-        self.settings.setValue('tvnao/configured', True)
-
     def load_settings(self):
-        self.playlist_host = self.settings.value('playlist/host', type=str)
-        self.playlist_url = self.settings.value('playlist/url',type=str)
-        self.player = self.settings.value('player/path', type=str)
-        self.options = self.settings.value('player/options', type=str)
-        self.epg_host = self.settings.value('epg/host', type=str)
-        self.epg_url = self.settings.value('epg/url', type=str)
-        self.epg_index = self.settings.value('epg/index', type=str)
-        if not self.settings.value('epg/cache', type=bool):
-            self.refresh_guide_index()
-        cache = self.settings.value('epg/cache', type=str).split('|')
-        for i, entry in enumerate(cache):
-            pair = entry.split(',')
-            if len(pair) > 1:
-                self.index[pair[0]] = pair[1]
+        self.playlist_host = Settings.settings.value('playlist/host', type=str)
+        self.playlist_url = Settings.settings.value('playlist/url',type=str)
+        self.player = Settings.settings.value('player/path', type=str)
+        self.options = Settings.settings.value('player/options', type=str)
+        self.epg_host = Settings.settings.value('epg/host', type=str)
+        self.epg_url = Settings.settings.value('epg/url', type=str)
+        self.epg_index = Settings.settings.value('epg/index', type=str)
 
     def send_request_get(self, host, loc):
         conn = http.client.HTTPConnection(host, timeout=10)
@@ -230,7 +213,7 @@ class MainWindow(QtWidgets.QWidget):
         objects = re.finditer('id=\'(\d{1,7}?)\'.*?&nbsp;(.*?)\</td', request, flags=re.DOTALL)
         for o in objects:
             self.index[o.group(2).lower()] = o.group(1)
-        aliases = self.settings.value('epg/aliases', type=str).split('|')
+        aliases = Settings.settings.value('epg/aliases', type=str).split('|')
         for alias in aliases:
             pair = alias.split(',')
             if len(pair) > 1 and pair[1] in self.index:
@@ -240,7 +223,7 @@ class MainWindow(QtWidgets.QWidget):
             if i != 0:
                 cache += '|'
             cache += entry + ',' + self.index[entry]
-        self.settings.setValue('epg/cache', cache)
+        Settings.settings.setValue('epg/cache', cache)
 
     def show_settings(self):
         settings_dialog = Settings()
@@ -252,65 +235,6 @@ class MainWindow(QtWidgets.QWidget):
             '<p><b>tvnao</b> v0.5 &copy; 2016 Blaze</p>'
             '<p>&lt;blaze@vivaldi.net&gt;</p>'
             '<p><a href="https://bitbucket.org/blaze/tvnao">bitbucket.org/blaze/tvnao</a></p>')
-
-class Settings(QtWidgets.QDialog):
-    settings = QSettings('tvnao', 'tvnao')
-
-    def __init__(self):
-        super(Settings, self).__init__()
-        self.ui = Ui_Dialog()
-        self.ui.setupUi(self)
-        self.ui.playlistHost.setText(self.settings.value('playlist/host', type=str))
-        self.ui.playlistURL.setText(self.settings.value('playlist/url', type=str))
-        self.ui.playerPath.setText(self.settings.value('player/path', type=str))
-        self.ui.playerOptions.setText(self.settings.value('player/options', type=str))
-        self.ui.epgHost.setText(self.settings.value('epg/host', type=str))
-        self.ui.epgIndex.setText(self.settings.value('epg/index', type=str))
-        self.ui.epgURL.setText(self.settings.value('epg/url', type=str))
-        aliases = self.settings.value('epg/aliases', type=str).split('|')
-        divider = ','
-        if not divider in aliases[0]:
-            return
-        self.ui.tableAliases.setRowCount(len(aliases))
-        for i, alias in enumerate(aliases):
-            pair = alias.split(divider)
-            if len(pair) > 1:
-                self.ui.tableAliases.setItem(i, 0, QtWidgets.QTableWidgetItem(pair[0]))
-                self.ui.tableAliases.setItem(i, 1, QtWidgets.QTableWidgetItem(pair[1]))
-
-    @pyqtSlot(name='on_buttonBox_accepted')
-    def save(self):
-        self.settings.setValue('playlist/host', self.ui.playlistHost.text())
-        self.settings.setValue('playlist/url', self.ui.playlistURL.text())
-        self.settings.setValue('player/path', self.ui.playerPath.text())
-        self.settings.setValue('player/options', self.ui.playerOptions.text())
-        self.settings.setValue('epg/host', self.ui.epgHost.text())
-        self.settings.setValue('epg/index', self.ui.epgIndex.text())
-        self.settings.setValue('epg/url', self.ui.epgURL.text())
-        aliases = ''
-        for i in range(0, self.ui.tableAliases.rowCount()):
-            if i != 0:
-                aliases += '|'
-            aliases += self.ui.tableAliases.item(i, 0).text().lower() + ',' + \
-            self.ui.tableAliases.item(i, 1).text().lower()
-        self.settings.setValue('epg/aliases', aliases)
-
-    @pyqtSlot()
-    def on_aliasAddButton_released(self):
-        if self.ui.aliasPlaylist.text()=='' or self.ui.aliasGuide.text()=='':
-            self.ui.errorLabel.setText('<b>field should not be empty</b>')
-            return
-        row = self.ui.tableAliases.rowCount()
-        self.ui.tableAliases.setRowCount(row + 1)
-        self.ui.tableAliases.setItem(row, 0, QtWidgets.QTableWidgetItem(self.ui.aliasPlaylist.text()))
-        self.ui.tableAliases.setItem(row, 1, QtWidgets.QTableWidgetItem(self.ui.aliasGuide.text()))
-        self.ui.aliasPlaylist.clear()
-        self.ui.aliasGuide.clear()
-        self.ui.errorLabel.setText('')
-
-    @pyqtSlot()
-    def on_aliasDelButton_released(self):
-        self.ui.tableAliases.removeRow(self.ui.tableAliases.currentRow())
 
 def main():
     if 'linux' in sys.platform:

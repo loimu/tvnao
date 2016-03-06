@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>492</height>
+    <height>523</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -237,6 +237,28 @@
             </property>
            </spacer>
           </item>
+          <item>
+           <widget class="QLabel" name="errorLabel">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>52</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>80</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
@@ -247,9 +269,9 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
-      <widget class="QLabel" name="errorLabel">
+      <widget class="QPushButton" name="defaultsButton">
        <property name="text">
-        <string/>
+        <string>Defaults</string>
        </property>
       </widget>
      </item>
