@@ -85,8 +85,6 @@ class MainWindow(QtWidgets.QWidget):
         self.ui.buttonGo.setIcon(QtGui.QIcon.fromTheme('media-playback-start'))
         self.set_guide_visibility(False)
         self.update_list_widget()
-        if self.ui.listWidget.count() > 0:
-            self.ui.listWidget.setCurrentRow(0)
 
     def load_settings(self):
         self.playlist_host = Settings.settings.value('playlist/host', type=str)
@@ -109,6 +107,8 @@ class MainWindow(QtWidgets.QWidget):
     def refresh_all(self):
         self.refresh_guide_index()
         self.update_list_widget()
+        if self.ui.listWidget.count() > 0:
+            self.ui.listWidget.setCurrentRow(0)
 
     def refresh_list(self):
         self.list = []
@@ -144,8 +144,9 @@ class MainWindow(QtWidgets.QWidget):
 
     def run_player(self):
         command = [self.player]
-        if self.options != '':
-            command.append(self.options)
+        options = self.options.split(' ')
+        if options[0] != '':
+            command += options
         command.append(self.ui.listWidget.currentItem().address)
         process = subprocess.Popen(command, stdin=subprocess.DEVNULL,
                                    stdout=subprocess.DEVNULL,
