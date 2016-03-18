@@ -238,6 +238,9 @@ class MainWindow(QtWidgets.QWidget):
             '<p><a href="https://bitbucket.org/blaze/tvnao">bitbucket.org/blaze/tvnao</a></p>')
 
 def main():
+    if sys.hexversion < 0x30500f0:
+        print('E: python version too old, 3.5 and higher is needed')
+        sys.exit(1)
     if 'linux' in sys.platform:
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)
     app = QtWidgets.QApplication(sys.argv)
