@@ -32,7 +32,7 @@ class MainWindow(QtWidgets.QWidget):
         # loading settings
         Settings.first_run()
         self.load_settings()
-        if not Settings.settings.value('epg/cache', type=bool):
+        if not bool(Settings.settings.value('epg/cache')):
             self.refresh_guide_index()
         else:
             cache = Settings.settings.value('epg/cache', type=str).split('|')
@@ -235,11 +235,11 @@ class MainWindow(QtWidgets.QWidget):
         QtWidgets.QMessageBox.about(self, 'About tvnao',
             '<p><b>tvnao</b> v0.5 &copy; 2016 Blaze</p>'
             '<p>&lt;blaze@vivaldi.net&gt;</p>'
-            '<p><a href="https://bitbucket.org/blaze/tvnao">bitbucket.org/blaze/tvnao</a></p>')
+            '<p><a href="odehttps://bitbucket.org/blaze/tvnao">bitbucket.org/blaze/tvnao</a></p>')
 
 def main():
-    if sys.hexversion < 0x30500f0:
-        print('E: python version too old, 3.5 and higher is needed')
+    if sys.hexversion < 0x30400f0:
+        print('E: python version too old, 3.4 and higher is needed')
         sys.exit(1)
     if 'linux' in sys.platform:
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)

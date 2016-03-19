@@ -26,7 +26,7 @@ class Settings(QtWidgets.QDialog):
     @staticmethod
     def first_run():
         settings = Settings.settings
-        if settings.value('tvnao/configured', type=bool):
+        if bool(settings.value('tvnao/configured')):
             return
         print('adding config options...')
         for entry in Settings.defaults:
