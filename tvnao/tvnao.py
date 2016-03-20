@@ -235,7 +235,7 @@ class MainWindow(QtWidgets.QWidget):
         QtWidgets.QMessageBox.about(self, 'About tvnao',
             '<p><b>tvnao</b> v0.5 &copy; 2016 Blaze</p>'
             '<p>&lt;blaze@vivaldi.net&gt;</p>'
-            '<p><a href="odehttps://bitbucket.org/blaze/tvnao">bitbucket.org/blaze/tvnao</a></p>')
+            '<p><a href="https://bitbucket.org/blaze/tvnao">bitbucket.org/blaze/tvnao</a></p>')
 
 def main():
     if sys.hexversion < 0x30400f0:
