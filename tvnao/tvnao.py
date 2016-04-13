@@ -144,7 +144,7 @@ class MainWindow(QtWidgets.QWidget):
 
     def run_player(self):
         command = [self.player]
-        options = self.options.split(' ')
+        options = self.options.split()
         if options[0] != '':
             command += options
         command.append(self.ui.listWidget.currentItem().address)

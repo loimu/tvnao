@@ -15,7 +15,7 @@ class Settings(QtWidgets.QDialog):
     defaults = {
         'playlist/host':  'iptv.isp.domain',
         'playlist/url':   '/iptv_playlist.m3u',
-        'player/options': '--network-timeout=60',
+        'player/options': '--network-timeout=60 --no-ytdl --force-window=immediate',
         'epg/host':       'www.tvguide.domain',
         'epg/index':      '/epg',
         'epg/url':        '/engine/modules/EPG/ViewProgramForOneDay.php',
