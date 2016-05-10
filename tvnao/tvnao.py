@@ -95,7 +95,7 @@ class MainWindow(QtWidgets.QWidget):
         self.epg_url = Settings.settings.value('epg/url', type=str)
         self.epg_index = Settings.settings.value('epg/index', type=str)
 
-    def send_request_get(self, host, loc):
+    def send_request(self, host, loc):
         conn = http.client.HTTPConnection(host, timeout=10)
         try:
             conn.request('GET', loc)
@@ -114,7 +114,8 @@ class MainWindow(QtWidgets.QWidget):
         self.list = []
         counter = 0
         print('getting remote playlist...')
-        request = self.send_request_get(self.playlist_host, self.playlist_url)
+        request = self.send_request(self.playlist_host, self.playlist_url)
+        request += self.add_playlist()
         for line in request.splitlines():
             if line.startswith('#EXTINF'):
                 counter += 1
@@ -210,7 +211,7 @@ class MainWindow(QtWidgets.QWidget):
 
     def refresh_guide_index(self):
         print('refreshing epg index...')
-        request = self.send_request_get(self.epg_host, self.epg_index)
+        request = self.send_request(self.epg_host, self.epg_index)
         objects = re.finditer('id=\'(\d{1,7}?)\'.*?&nbsp;(.*?)\</td', request, flags=re.DOTALL)
         for o in objects:
             self.index[o.group(2).lower()] = o.group(1)
@@ -225,6 +226,22 @@ class MainWindow(QtWidgets.QWidget):
                 cache += '|'
             cache += entry + ',' + self.index[entry]
         Settings.settings.setValue('epg/cache', cache)
+
+    def add_playlist(self):
+        string = ''
+        if len(sys.argv) > 1:
+            playlist = sys.argv[1]
+            if playlist.startswith('http'):
+                playlist = re.split('https?://(.*)(\/.*)', playlist)
+                string = self.send_request(playlist[1], playlist[2])
+            elif playlist.startswith('/'):
+                file = open(playlist)
+                string = file.read()
+                file.close()
+            if '#EXTM3U' not in string[:9]:
+                print('E: contents of additional playlist are not valid')
+                string = ''
+        return string
 
     def show_settings(self):
         settings_dialog = Settings()
