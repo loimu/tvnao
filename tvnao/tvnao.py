@@ -148,11 +148,14 @@ class MainWindow(QtWidgets.QWidget):
         options = self.options.split()
         if options[0] != '':
             command += options
+        command.append('--force-media-title=' +
+                       self.ui.listWidget.currentItem().text())
         command.append(self.ui.listWidget.currentItem().address)
         process = subprocess.Popen(command, stdin=subprocess.DEVNULL,
                                    stdout=subprocess.DEVNULL,
                                    stderr=subprocess.DEVNULL)
-        print('running new process with pid: %s\n  %s' % (str(process.pid), str(command)))
+        print('running new process with pid: %s\n  %s' % (str(process.pid),
+                                                          str(command)))
 
     def show_hide_guide(self):
         if self.ui.guideBrowser.isHidden():
@@ -241,7 +244,7 @@ class MainWindow(QtWidgets.QWidget):
             if '#EXTM3U' not in string[:9]:
                 print('E: contents of additional playlist are not valid')
                 string = ''
-        return string
+        return string.replace('#EXTM3U', '', 1)
 
     def show_settings(self):
         settings_dialog = Settings()
