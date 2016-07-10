@@ -3,6 +3,7 @@
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
 import sys
+import codecs
 import subprocess
 import http.client
 import urllib.parse
@@ -237,8 +238,8 @@ class MainWindow(QtWidgets.QWidget):
             if playlist.startswith('http'):
                 playlist = re.split('https?://(.*)(\/.*)', playlist)
                 string = self.send_request(playlist[1], playlist[2])
-            elif playlist.startswith('/'):
-                file = open(playlist)
+            elif re.match('^/|^\w:\S{3}', playlist):
+                file = codecs.open(playlist, 'r', 'utf-8')
                 string = file.read()
                 file.close()
             if '#EXTM3U' not in string[:9]:
