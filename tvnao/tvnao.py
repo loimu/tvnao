@@ -15,6 +15,7 @@ from PyQt5.QtCore import pyqtSlot
 
 from .tvnao_widget import Ui_Form
 from .settings import Settings
+from .tvnao_rc import *
 
 class ListItem(QtWidgets.QListWidgetItem):
     address = ''

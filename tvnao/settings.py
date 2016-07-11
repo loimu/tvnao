@@ -5,7 +5,7 @@
 import sys
 import subprocess
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QSettings, pyqtSlot
 
 from .settings_dialog import Ui_Dialog
@@ -35,9 +35,8 @@ class Settings(QtWidgets.QDialog):
 
     @staticmethod
     def player_detect():
-        if 'win' in sys.platform:
-            return 'mpv.exe'
-        return subprocess.getoutput('which mpv mplayer mplayer2').split('\n')[0]
+        player = subprocess.getoutput('which mpv mplayer mplayer2').split('\n')[0]
+        return player if player else 'mpv'
 
     def __init__(self):
         super(Settings, self).__init__()
@@ -51,6 +50,7 @@ class Settings(QtWidgets.QDialog):
         self.ui.epgIndex.setText(self.settings.value('epg/index', type=str))
         self.ui.epgURL.setText(self.settings.value('epg/url', type=str))
         self.fill_table(self.settings.value('epg/aliases', type=str))
+        self.setWindowIcon(QtGui.QIcon.fromTheme('configure', QtGui.QIcon(':/icons/configure.svg')))
 
     def fill_table(self, input):
         aliases = input.split('|')
