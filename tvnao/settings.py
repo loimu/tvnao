@@ -35,6 +35,8 @@ class Settings(QtWidgets.QDialog):
 
     @staticmethod
     def player_detect():
+        if 'win' in sys.platform:
+            return 'mpv'
         player = subprocess.getoutput('which mpv mplayer mplayer2').split('\n')[0]
         return player if player else 'mpv'
 
