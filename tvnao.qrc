@@ -1,0 +1,8 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+<file>./icons/configure.svg</file>
+<file>./icons/media-playback-start.svg</file>
+<file>./icons/view-refresh.svg</file>
+<file>./icons/video-television.svg</file>
+</qresource>
+</RCC>
