@@ -46,10 +46,10 @@ def create_database():
     conn = sqlite3.connect('schedule.db')
     c = conn.cursor()
     c.execute('''CREATE TABLE channels
-             (id integer not null primary key autoincrement, name text)''')
+             (id integer not null primary key, name text)''')
     c.execute('''CREATE TABLE programme
              (channel integer, start integer, stop integer, desc text,
-             primary key(channel, start))''')
+             primary key(channel, start, stop))''')
     conn.commit()
     conn.close()
 
