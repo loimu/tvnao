@@ -16,9 +16,9 @@ class Settings(QtWidgets.QDialog):
         'playlist/host':  'iptv.isp.domain',
         'playlist/url':   '/iptv_playlist.m3u',
         'player/options': '--network-timeout=60 --no-ytdl --force-window=immediate',
-        'epg/host':       'www.tvguide.domain',
+        'epg/host':       'localhost:8089',
         'epg/index':      '/epg',
-        'epg/url':        '/engine/modules/EPG/ViewProgramForOneDay.php',
+        'epg/url':        '/viewProgram',
         'epg/aliases':    '',
         'tvnao/configured': True
     }
