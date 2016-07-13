@@ -84,7 +84,14 @@ class MainWindow(QtWidgets.QWidget):
         self.playlist_url = Settings.settings.value('playlist/url',type=str)
         self.player = Settings.settings.value('player/path', type=str)
         self.options = Settings.settings.value('player/options', type=str)
-        self.epg_host = Settings.settings.value('epg/host', type=str)
+        host = Settings.settings.value('epg/host', type=str).split(':')
+        self.epg_host = host[0]
+        self.epg_port = 80
+        if len(host) > 1:
+            if host[1].isdigit():
+                port = int(host[1])
+                if port < 65535 and port >= 0:
+                    self.epg_port = port
         self.epg_url = Settings.settings.value('epg/url', type=str)
         self.epg_index = Settings.settings.value('epg/index', type=str)
         # check and load cache
@@ -97,8 +104,8 @@ class MainWindow(QtWidgets.QWidget):
                 if len(pair) > 1:
                     self.index[pair[0]] = pair[1]
 
-    def send_request(self, host, loc):
-        conn = http.client.HTTPConnection(host, timeout=10)
+    def send_request(self, host, port, loc):
+        conn = http.client.HTTPConnection(host, port, timeout=10)
         try:
             conn.request('GET', loc)
         except OSError:
@@ -117,7 +124,7 @@ class MainWindow(QtWidgets.QWidget):
         self.list = []
         counter = 0
         print('getting remote playlist...')
-        request = self.send_request(self.playlist_host, self.playlist_url)
+        request = self.send_request(self.playlist_host, 80, self.playlist_url)
         request += self.add_playlist()
         for line in request.splitlines():
             if line.startswith('#EXTINF'):
@@ -176,7 +183,7 @@ class MainWindow(QtWidgets.QWidget):
     def get_guide_data(self, id, date, schedule):
         params = urllib.parse.urlencode({'id': id, 'date': date, 'schedule': schedule, 'start': 0})
         headers = {'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'Accept': 'text/html'}
-        conn = http.client.HTTPConnection(self.epg_host, timeout=5)
+        conn = http.client.HTTPConnection(self.epg_host, self.epg_port, timeout=5)
         try:
             conn.request('POST', self.epg_url, params, headers)
         except OSError:
@@ -217,7 +224,8 @@ class MainWindow(QtWidgets.QWidget):
 
     def refresh_guide_index(self):
         print('refreshing epg index...')
-        request = self.send_request(self.epg_host, self.epg_index)
+        self.index.clear()
+        request = self.send_request(self.epg_host, self.epg_port, self.epg_index)
         objects = re.finditer('id=\'(\d{1,7}?)\'.*?&nbsp;(.*?)\</td', request, flags=re.DOTALL)
         for o in objects:
             self.index[o.group(2).lower()] = o.group(1)
