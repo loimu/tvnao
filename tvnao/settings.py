@@ -48,7 +48,8 @@ class Settings(QtWidgets.QDialog):
         self.ui.playlistURL.setText(self.settings.value('playlist/url', type=str))
         self.ui.playerPath.setText(self.settings.value('player/path', type=str))
         self.ui.playerOptions.setText(self.settings.value('player/options', type=str))
-        self.ui.epgHost.setText(self.settings.value('epg/host', type=str))
+        self.epg_host = self.settings.value('epg/host', type=str)
+        self.ui.epgHost.setText(self.epg_host)
         self.ui.epgIndex.setText(self.settings.value('epg/index', type=str))
         self.ui.epgURL.setText(self.settings.value('epg/url', type=str))
         self.fill_table(self.settings.value('epg/aliases', type=str))
@@ -82,6 +83,8 @@ class Settings(QtWidgets.QDialog):
             aliases += self.ui.tableAliases.item(i, 0).text().lower() + ',' + \
             self.ui.tableAliases.item(i, 1).text().lower()
         self.settings.setValue('epg/aliases', aliases)
+        if self.epg_host != self.ui.epgHost.text():
+            self.settings.setValue('epg/cache', '')
 
     @pyqtSlot()
     def on_aliasAddButton_released(self):

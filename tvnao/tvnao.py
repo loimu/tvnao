@@ -31,17 +31,8 @@ class MainWindow(QtWidgets.QWidget):
         super(MainWindow, self).__init__()
         self.ui = Ui_Form()
         self.ui.setupUi(self)
-        # loading settings
         Settings.first_run()
         self.load_settings()
-        if not bool(Settings.settings.value('epg/cache')):
-            self.refresh_guide_index()
-        else:
-            cache = Settings.settings.value('epg/cache', type=str).split('|')
-            for i, entry in enumerate(cache):
-                pair = entry.split(',')
-                if len(pair) > 1:
-                    self.index[pair[0]] = pair[1]
         # actions setup
         quit_action = QtWidgets.QAction(self)
         self.addAction(quit_action)
@@ -96,6 +87,15 @@ class MainWindow(QtWidgets.QWidget):
         self.epg_host = Settings.settings.value('epg/host', type=str)
         self.epg_url = Settings.settings.value('epg/url', type=str)
         self.epg_index = Settings.settings.value('epg/index', type=str)
+        # check and load cache
+        if not bool(Settings.settings.value('epg/cache')):
+            self.refresh_guide_index()
+        else:
+            cache = Settings.settings.value('epg/cache', type=str).split('|')
+            for i, entry in enumerate(cache):
+                pair = entry.split(',')
+                if len(pair) > 1:
+                    self.index[pair[0]] = pair[1]
 
     def send_request(self, host, loc):
         conn = http.client.HTTPConnection(host, timeout=10)
@@ -107,6 +107,7 @@ class MainWindow(QtWidgets.QWidget):
         return conn.getresponse().read().decode('utf-8')
 
     def refresh_all(self):
+        Settings.settings.setValue('epg/cache', '')
         self.refresh_guide_index()
         self.update_list_widget()
         if self.ui.listWidget.count() > 0:
