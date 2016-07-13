@@ -64,6 +64,8 @@ class customHandler(BaseHTTPRequestHandler):
                         response += formt((' class=\'in\'', r[1], r[3]))
                     else:
                         response += formt(('', r[1], r[3]))
+            if len(response) < 50:
+                response += '<tr><td>n/a</td></tr>'
             response += '</table><hr>'
             self.wfile.write(bytes(response, 'utf-8'))
         return

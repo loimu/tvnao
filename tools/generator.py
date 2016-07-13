@@ -60,7 +60,10 @@ def add_to_database(jtv_filename, epg_encoding="UTF-8", epg_timezone="UTC"):
     channel_id = 0
     for filename in archive.namelist():
         if filename.endswith('.pdt'):
-            unicode_name = codecs.decode(bytes(filename, 'cp437'), 'cp866')
+            try:
+                unicode_name = codecs.decode(bytes(filename, 'cp437'), 'cp866')
+            except ValueError:
+                unicode_name = bytes(filename, 'utf-8')
             channel_name = unicode_name[0:-4].replace('_', ' ')
             channel_id += 1
             channel = (channel_id, channel_name, )
