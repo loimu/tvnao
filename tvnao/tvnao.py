@@ -31,8 +31,6 @@ class MainWindow(QtWidgets.QWidget):
         super(MainWindow, self).__init__()
         self.ui = Ui_Form()
         self.ui.setupUi(self)
-        Settings.first_run()
-        self.load_settings()
         # actions setup
         quit_action = QtWidgets.QAction(self)
         self.addAction(quit_action)
@@ -77,7 +75,8 @@ class MainWindow(QtWidgets.QWidget):
         self.ui.buttonMenu.setMenu(menu)
         self.ui.buttonGo.setIcon(QtGui.QIcon.fromTheme('media-playback-start', QtGui.QIcon(':/icons/media-playback-start.svg')))
         self.set_guide_visibility(False)
-        self.update_list_widget()
+        Settings.first_run()
+        self.load_settings()
 
     def load_settings(self):
         self.playlist_host = Settings.settings.value('playlist/host', type=str)
@@ -106,12 +105,16 @@ class MainWindow(QtWidgets.QWidget):
 
     def send_request(self, host, port, loc):
         conn = http.client.HTTPConnection(host, port, timeout=10)
+        req = ''
         try:
             conn.request('GET', loc)
         except OSError:
-            print('E: Network is unreachable. Please check your connection and try again.')
-            return ''
-        return conn.getresponse().read().decode('utf-8')
+            QtWidgets.QMessageBox.warning(self, 'Network error', 'Please check your connection')
+        try:
+            req = conn.getresponse().read().decode('utf-8')
+        except:
+            QtWidgets.QMessageBox.warning(self, 'Timeout', 'Connection timeout')
+        return req
 
     def refresh_all(self):
         Settings.settings.setValue('epg/cache', '')
@@ -188,7 +191,10 @@ class MainWindow(QtWidgets.QWidget):
             conn.request('POST', self.epg_url, params, headers)
         except OSError:
             return '<b>network error</b>'
-        req = conn.getresponse()
+        try:
+            req = conn.getresponse()
+        except:
+            return '<b>connection timeout</b>'
         ret = re.sub('\<div.*?\</div\>|\<hr\>', '', req.read().decode('utf-8'))\
             .replace("class='before'", 'style="color:gray;"') \
             .replace("class='in'", 'style="color:indigo;"')
@@ -264,7 +270,7 @@ class MainWindow(QtWidgets.QWidget):
 
     def show_about(self):
         QtWidgets.QMessageBox.about(self, 'About tvnao',
-            '<p><b>tvnao</b> v0.5 &copy; 2016 Blaze</p>'
+            '<p><b>tvnao</b> v0.6 &copy; 2016 Blaze</p>'
             '<p>&lt;blaze@vivaldi.net&gt;</p>'
             '<p><a href="https://bitbucket.org/blaze/tvnao">bitbucket.org/blaze/tvnao</a></p>')
 
@@ -278,4 +284,5 @@ def main():
     tv_widget = MainWindow()
     tv_widget.setWindowIcon(QtGui.QIcon.fromTheme('video-television', QtGui.QIcon(':/icons/video-television.svg')))
     tv_widget.show()
+    tv_widget.update_list_widget()
     sys.exit(app.exec_())

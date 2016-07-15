@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='tvnao',
-    version='0.5',
+    version='0.6',
     description='tv here and now',
     long_description='a tool for watching IP TV, shows TV guide',
     author='blaze',

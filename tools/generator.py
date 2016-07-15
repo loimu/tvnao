@@ -10,11 +10,11 @@ import datetime
 import sqlite3
 import codecs
 import requests
+import os.path
 
 def parse_titles(data):
-    jtv_header = b'JTV 3.x TV Program Data\n\n\n'
-    if data[0:26] != jtv_header:
-        raise Exception('Invalid JTV format')
+    if data[0:26] != b'JTV 3.x TV Program Data\n\n\n':
+        raise Exception('invalid JTV format')
     data = data[26:]
     titles = []
     while len(data) > 0:
@@ -42,8 +42,15 @@ def parse_schedule(data):
         schedules.append(filetime_to_datetime(record[2:-2]))
     return schedules
 
-def create_database():
-    conn = sqlite3.connect('schedule.db')
+def download_file(link, filename):
+    print('downloading file ' + filename)
+    r = requests.get(link)
+    with open(filename, "wb") as file:
+        file.write(r.content)
+
+def create_database(dbname):
+    print('creating database ' + dbname)
+    conn = sqlite3.connect(dbname)
     c = conn.cursor()
     c.execute('''CREATE TABLE channels
              (id integer not null primary key, name text)''')
@@ -53,8 +60,22 @@ def create_database():
     conn.commit()
     conn.close()
 
-def add_to_database(jtv_filename, epg_encoding="UTF-8", epg_timezone="UTC"):
-    conn = sqlite3.connect('schedule.db')
+def read_replacements(fname):
+    result = {}
+    if os.path.isfile(fname):
+        repl_file = codecs.open(fname, 'r', 'utf-8')
+        lines = repl_file.read().splitlines()
+        repl_file.close()
+        for line in lines:
+            entry = line.split(',')
+            if len(entry) > 1:
+                result[entry[0]] = entry[1]
+    return result
+
+def add_to_database(dbname, jtv_filename):
+    print('writing into database ' + dbname)
+    replacements = read_replacements('replacement.txt')
+    conn = sqlite3.connect(dbname)
     c = conn.cursor()
     archive = zipfile.ZipFile(jtv_filename, 'r')
     channel_id = 0
@@ -65,6 +86,8 @@ def add_to_database(jtv_filename, epg_encoding="UTF-8", epg_timezone="UTC"):
             except ValueError:
                 unicode_name = bytes(filename, 'utf-8')
             channel_name = unicode_name[0:-4].replace('_', ' ')
+            if channel_name in replacements:
+                channel_name = replacements[channel_name]
             channel_id += 1
             channel = (channel_id, channel_name, )
             c.execute('INSERT INTO channels VALUES (?,?)', channel)
@@ -79,10 +102,7 @@ def add_to_database(jtv_filename, epg_encoding="UTF-8", epg_timezone="UTC"):
             i = 0
             for curr_title in channel_titles:
                 if i < len(channel_schedules) - 1:
-                    if epg_timezone != "UTC":
-                        time_format = '%Y%m%d%H%M%S ' + epg_timezone
-                    else:
-                        time_format = '%Y%m%d%H%M%S'
+                    time_format = '%Y%m%d%H%M%S'
                     programme = (channel_id,
                                  channel_schedules[i].strftime(time_format),
                                  channel_schedules[i+1].strftime(time_format),
@@ -97,22 +117,12 @@ def add_to_database(jtv_filename, epg_encoding="UTF-8", epg_timezone="UTC"):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', '--link', required=True)
-    parser.add_argument('-t', '--timezone')
     args = parser.parse_args()
-    if args.timezone is None:
-        tz_format = 'UTC'
-    elif args.timezone[0] == '-' or args.timezone[0] == '+':
-        tz_format = str(args.timezone)
-    else:
-        tz_format = '+' + str(args.timezone)
-    # download jtv.zip file
-    r = requests.get(args.link)
-    filename = "jtv.zip"
-    with open(filename, "wb") as file:
-        file.write(r.content)
-    # create database and parse downloaded archive into it
-    create_database()
-    add_to_database(filename, epg_timezone=tz_format)
+    filename = 'jtv.zip'
+    dbname = 'schedule.db'
+    download_file(args.link, filename)
+    create_database(dbname)
+    add_to_database(dbname, filename)
 
 if __name__ == "__main__":
     main()
