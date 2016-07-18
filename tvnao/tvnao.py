@@ -48,17 +48,20 @@ class MainWindow(QtWidgets.QWidget):
         self.addAction(refresh_action)
         refresh_action.setText('Refresh')
         refresh_action.setShortcut('Ctrl+R')
-        refresh_action.setIcon(QtGui.QIcon.fromTheme('view-refresh', QtGui.QIcon(':/icons/view-refresh.svg')))
+        refresh_action.setIcon(QtGui.QIcon.fromTheme('view-refresh',
+                             QtGui.QIcon(':/icons/view-refresh.svg')))
         refresh_action.triggered.connect(self.refresh_all)
         settings_action = QtWidgets.QAction(self)
         self.addAction(settings_action)
         settings_action.setText('Settings')
         settings_action.setShortcut('Ctrl+P')
-        settings_action.setIcon(QtGui.QIcon.fromTheme('configure', QtGui.QIcon(':/icons/configure.svg')))
+        settings_action.setIcon(QtGui.QIcon.fromTheme('configure',
+                              QtGui.QIcon(':/icons/configure.svg')))
         settings_action.triggered.connect(self.show_settings)
         about_action = QtWidgets.QAction(self)
         about_action.setText('About')
-        about_action.setIcon(QtGui.QIcon.fromTheme('video-television', QtGui.QIcon(':/icons/video-television.svg')))
+        about_action.setIcon(QtGui.QIcon.fromTheme('video-television',
+                           QtGui.QIcon(':/icons/video-television.svg')))
         about_action.triggered.connect(self.show_about)
         # signal/slot setup
         self.ui.buttonGo.released.connect(self.run_player)
@@ -71,12 +74,16 @@ class MainWindow(QtWidgets.QWidget):
         menu.addAction(settings_action)
         menu.addSeparator()
         menu.addAction(about_action)
-        self.ui.buttonMenu.setIcon(QtGui.QIcon.fromTheme('video-television', QtGui.QIcon(':/icons/video-television.svg')))
+        self.ui.buttonMenu.setIcon(QtGui.QIcon.fromTheme('video-television',
+                                 QtGui.QIcon(':/icons/video-television.svg')))
         self.ui.buttonMenu.setMenu(menu)
-        self.ui.buttonGo.setIcon(QtGui.QIcon.fromTheme('media-playback-start', QtGui.QIcon(':/icons/media-playback-start.svg')))
+        self.ui.buttonGo.setIcon(QtGui.QIcon.fromTheme('media-playback-start',
+                               QtGui.QIcon(':/icons/media-playback-start.svg')))
         self.set_guide_visibility(False)
         Settings.first_run()
         self.load_settings()
+        QtWidgets.QScroller.grabGesture(self.ui.listWidget,
+                                        QtWidgets.QScroller.TouchGesture)
 
     def load_settings(self):
         self.playlist_host = Settings.settings.value('playlist/host', type=str)
@@ -109,7 +116,8 @@ class MainWindow(QtWidgets.QWidget):
         try:
             conn.request('GET', loc)
         except OSError:
-            QtWidgets.QMessageBox.warning(self, 'Network error', 'Please check your connection')
+            QtWidgets.QMessageBox.warning(self, 'Network error',
+                                          'Please check your connection')
         try:
             req = conn.getresponse().read().decode('utf-8')
         except:
@@ -144,6 +152,8 @@ class MainWindow(QtWidgets.QWidget):
             item = ListItem()
             item.setText(entry[0])
             item.address = entry[1]
+            icon = 'camera-web' if 'амера' in entry[0] else 'video-webm'
+            item.setIcon(QtGui.QIcon.fromTheme(icon))
             self.ui.listWidget.addItem(item)
 
     @pyqtSlot(str, name='on_lineEditFilter_textEdited')
@@ -184,7 +194,8 @@ class MainWindow(QtWidgets.QWidget):
         self.ui.guideNextButton.setVisible(visible)
 
     def get_guide_data(self, id, date, schedule):
-        params = urllib.parse.urlencode({'id': id, 'date': date, 'schedule': schedule, 'start': 0})
+        params = urllib.parse.urlencode({'id': id, 'date': date,
+                                         'schedule': schedule, 'start': 0})
         headers = {'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'Accept': 'text/html'}
         conn = http.client.HTTPConnection(self.epg_host, self.epg_port, timeout=5)
         try:

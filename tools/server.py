@@ -46,13 +46,9 @@ class customHandler(BaseHTTPRequestHandler):
             response = '<div class=\'title\'>&nbsp;&nbsp;0</div><hr><table>'
             if 'toggle_now_day' in fields['schedule'] and today == date:
                 select = (channel, currtime, )
-                firstline = True
                 for r in c.execute('SELECT * FROM programme WHERE channel = ? AND stop > ? LIMIT 5 ;', select):
-                    if firstline:
-                        firstline = False
-                        response += formt((' class=\'in\'', r[1], r[3]))
-                    else:
-                        response += formt(('', r[1], r[3]))
+                    ins = ' class=\'in\'' if currtime > str(r[1]) else ''
+                    response += formt((ins, r[1], r[3]))
             if 'toggle_all_day' in fields['schedule'] or today != date:
                 begin = date + '000000'
                 end = date + '235900'
