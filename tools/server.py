@@ -5,6 +5,7 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from os import curdir, sep
 from urllib.parse import parse_qs
+from pytz import timezone
 import sqlite3
 import codecs
 import datetime
@@ -14,6 +15,8 @@ import argparse
 ftime = lambda x: str(x)[-6:-4] + ':' + str(x)[-4:-2]
 # get formatted output
 formt = lambda x: '<tr><td{0}>{1}</td><td{0}><span>{2}</span></td></tr>'.format(x[0],ftime(x[1]),x[2])
+# get timezone
+timezone = timezone('Europe/Minsk')
 
 conn = sqlite3.connect('schedule.db')
 c = conn.cursor()
@@ -41,8 +44,8 @@ class customHandler(BaseHTTPRequestHandler):
             fields = parse_qs(codecs.decode(self.rfile.read(length)), 'utf-8')
             channel = fields['id'][0]
             date = fields['date'][0]
-            today = datetime.date.today().strftime("%Y%m%d")
-            currtime = today + datetime.datetime.now().strftime("%H%M%S")
+            today = datetime.datetime.now(timezone).strftime("%Y%m%d")
+            currtime = today + datetime.datetime.now(timezone).strftime("%H%M%S")
             response = '<div class=\'title\'>&nbsp;&nbsp;0</div><hr><table>'
             if 'toggle_now_day' in fields['schedule'] and today == date:
                 select = (channel, currtime, )
@@ -53,7 +56,7 @@ class customHandler(BaseHTTPRequestHandler):
                 begin = date + '000000'
                 end = date + '235900'
                 select = (channel, begin, end, )
-                for r in c.execute('SELECT * FROM programme WHERE channel = ? AND start > ? AND start < ? ;', select):
+                for r in c.execute('SELECT * FROM programme WHERE channel = ? AND stop > ? AND start < ? ;', select):
                     if currtime > str(r[1]) and currtime > str(r[2]):
                         response += formt((' class=\'before\'', r[1], r[3]))
                     elif currtime > str(r[1]) and currtime < str(r[2]):
@@ -78,12 +81,10 @@ def run(host, port):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--host')
-    parser.add_argument('-p', '--port')
+    parser.add_argument('-s', '--host', default='localhost')
+    parser.add_argument('-p', '--port', default=8089, type=int)
     args = parser.parse_args()
-    host = 'localhost' if args.host is None else args.host
-    port = 8089 if args.port is None else int(args.port)
-    run(host, port)
+    run(args.host, args.port)
 
 if __name__ == "__main__":
     main()

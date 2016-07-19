@@ -80,10 +80,10 @@ class MainWindow(QtWidgets.QWidget):
         self.ui.buttonGo.setIcon(QtGui.QIcon.fromTheme('media-playback-start',
                                QtGui.QIcon(':/icons/media-playback-start.svg')))
         self.set_guide_visibility(False)
-        Settings.first_run()
-        self.load_settings()
         QtWidgets.QScroller.grabGesture(self.ui.listWidget,
                                         QtWidgets.QScroller.TouchGesture)
+        Settings.first_run()
+        self.load_settings()
 
     def load_settings(self):
         self.playlist_host = Settings.settings.value('playlist/host', type=str)
