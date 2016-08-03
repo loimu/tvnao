@@ -112,15 +112,14 @@ class MainWindow(QtWidgets.QWidget):
 
     def send_request(self, host, port=80, loc='/',
                      method='GET', timeout=10, params='', headers={}, warn=True):
-        conn = http.client.HTTPSConnection(host, port, timeout=timeout) if port is 443 \
-            else http.client.HTTPConnection(host, port, timeout=timeout)
+        conn = http.client.HTTPConnection(host, port, timeout=timeout)
         req = ''
         try:
             conn.request(method, loc, params, headers)
         except OSError:
             if warn:
                 QtWidgets.QMessageBox.warning(self, 'Network error',
-                                            'Check your network connection')
+                                              'Check your network connection')
             else:
                 return 'Network error'
         try:
@@ -128,7 +127,7 @@ class MainWindow(QtWidgets.QWidget):
         except:
             if warn:
                 QtWidgets.QMessageBox.warning(self, 'Connection timeout',
-                                            'Server is busy or connection is slow')
+                                              'Server is busy or connection is slow')
             else:
                 return 'Connection timeout'
         return req
@@ -210,17 +209,6 @@ class MainWindow(QtWidgets.QWidget):
         self.ui.guideFullButton.setVisible(visible)
         self.ui.guideNextButton.setVisible(visible)
 
-    def get_guide_data(self, id, date, schedule):
-        params = urllib.parse.urlencode({'id': id, 'date': date,
-                                         'schedule': schedule, 'start': 0})
-        headers = {'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'Accept': 'text/html'}
-        data = self.send_request(self.epg_host, self.epg_port, self.epg_url,
-                          method='POST', timeout=5, params=params, headers=headers, warn=False)
-        format = re.sub('\<div.*?\</div\>|\<hr\>', '', data) \
-            .replace("class='before'", 'style="color:gray;"') \
-            .replace("class='in'", 'style="color:indigo;"')
-        return re.sub('(\d\d:\d\d)', '<b>\\1</b>', format)
-
     def update_guide(self):
         if self.ui.guideBrowser.isVisible():
             if self.ui.listWidget.count() < 1:
@@ -235,7 +223,15 @@ class MainWindow(QtWidgets.QWidget):
                 date += 1
             all_day = self.ui.guideNextButton.isChecked() or self.ui.guideFullButton.isChecked()
             schedule = 'toggle_all_day' if all_day else 'toggle_now_day'
-            text = self.get_guide_data(id, date, schedule)
+            params = urllib.parse.urlencode({'id': id, 'date': date,
+                                         'schedule': schedule, 'start': 0})
+            headers = {'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'Accept': 'text/html'}
+            data = self.send_request(self.epg_host, self.epg_port, self.epg_url,
+                            method='POST', timeout=5, params=params, headers=headers, warn=False)
+            format = re.sub('\<div.*?\</div\>|\<hr\>', '', data) \
+                .replace("class='before'", 'style="color:gray;"') \
+                .replace("class='in'", 'style="color:indigo;"')
+            text = re.sub('(\d\d:\d\d)', '<b>\\1</b>', format)
             self.ui.guideBrowser.setText(text)
             self.ui.guideBrowser.setToolTip(text)
 
