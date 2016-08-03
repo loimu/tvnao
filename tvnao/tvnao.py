@@ -112,7 +112,8 @@ class MainWindow(QtWidgets.QWidget):
 
     def send_request(self, host, port=80, loc='/',
                      method='GET', timeout=10, params='', headers={}, warn=True):
-        conn = http.client.HTTPConnection(host, port, timeout=timeout)
+        conn = http.client.HTTPSConnection(host, port, timeout=timeout) if port == 443\
+            else http.client.HTTPConnection(host, port, timeout=timeout)
         req = ''
         try:
             conn.request(method, loc, params, headers)
@@ -228,8 +229,8 @@ class MainWindow(QtWidgets.QWidget):
             headers = {'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'Accept': 'text/html'}
             data = self.send_request(self.epg_host, self.epg_port, self.epg_url,
                             method='POST', timeout=5, params=params, headers=headers, warn=False)
-            format = re.sub('\<div.*?\</div\>|\<hr\>', '', data) \
-                .replace("class='before'", 'style="color:gray;"') \
+            format = re.sub('\<div.*?\</div\>|\<hr\>', '', data)\
+                .replace("class='before'", 'style="color:gray;"')\
                 .replace("class='in'", 'style="color:indigo;"')
             text = re.sub('(\d\d:\d\d)', '<b>\\1</b>', format)
             self.ui.guideBrowser.setText(text)
