@@ -110,19 +110,36 @@ class MainWindow(QtWidgets.QWidget):
                 if len(pair) > 1:
                     self.index[pair[0]] = pair[1]
 
-    def send_request(self, host, port, loc):
-        conn = http.client.HTTPConnection(host, port, timeout=10)
+    def send_request(self, host, port=80, loc='/',
+                     method='GET', timeout=10, params='', headers={}, warn=True):
+        conn = http.client.HTTPSConnection(host, port, timeout=timeout) if port is 443 \
+            else http.client.HTTPConnection(host, port, timeout=timeout)
         req = ''
         try:
-            conn.request('GET', loc)
+            conn.request(method, loc, params, headers)
         except OSError:
-            QtWidgets.QMessageBox.warning(self, 'Network error',
-                                          'Please check your connection')
+            if warn:
+                QtWidgets.QMessageBox.warning(self, 'Network error',
+                                            'Check your network connection')
+            else:
+                return 'Network error'
         try:
-            req = conn.getresponse().read().decode('utf-8')
+            req = self.read_request(conn.getresponse())
         except:
-            QtWidgets.QMessageBox.warning(self, 'Timeout', 'Connection timeout')
+            if warn:
+                QtWidgets.QMessageBox.warning(self, 'Connection timeout',
+                                            'Server is busy or connection is slow')
+            else:
+                return 'Connection timeout'
         return req
+
+    def read_request(self, request):
+        try:
+            return request.read().decode('utf-8')
+        except ValueError:
+            QtWidgets.QMessageBox.warning(self, 'Unicode error',
+                                          'Wrong encoding of the remote file')
+            return ''
 
     def refresh_all(self):
         Settings.settings.setValue('epg/cache', '')
@@ -135,7 +152,7 @@ class MainWindow(QtWidgets.QWidget):
         self.list = []
         counter = 0
         print('getting remote playlist...')
-        request = self.send_request(self.playlist_host, 80, self.playlist_url)
+        request = self.send_request(host=self.playlist_host, loc=self.playlist_url)
         request += self.add_playlist()
         for line in request.splitlines():
             if line.startswith('#EXTINF'):
@@ -197,19 +214,12 @@ class MainWindow(QtWidgets.QWidget):
         params = urllib.parse.urlencode({'id': id, 'date': date,
                                          'schedule': schedule, 'start': 0})
         headers = {'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'Accept': 'text/html'}
-        conn = http.client.HTTPConnection(self.epg_host, self.epg_port, timeout=5)
-        try:
-            conn.request('POST', self.epg_url, params, headers)
-        except OSError:
-            return '<b>network error</b>'
-        try:
-            req = conn.getresponse()
-        except:
-            return '<b>connection timeout</b>'
-        ret = re.sub('\<div.*?\</div\>|\<hr\>', '', req.read().decode('utf-8'))\
+        data = self.send_request(self.epg_host, self.epg_port, self.epg_url,
+                          method='POST', timeout=5, params=params, headers=headers, warn=False)
+        format = re.sub('\<div.*?\</div\>|\<hr\>', '', data) \
             .replace("class='before'", 'style="color:gray;"') \
             .replace("class='in'", 'style="color:indigo;"')
-        return re.sub('(\d\d:\d\d)', '<b>\\1</b>', ret)
+        return re.sub('(\d\d:\d\d)', '<b>\\1</b>', format)
 
     def update_guide(self):
         if self.ui.guideBrowser.isVisible():
@@ -264,7 +274,7 @@ class MainWindow(QtWidgets.QWidget):
             playlist = sys.argv[1]
             if playlist.startswith('http'):
                 playlist = re.split('https?://(.*)(\/.*)', playlist)
-                string = self.send_request(playlist[1], playlist[2])
+                string = self.send_request(host=playlist[1], loc=playlist[2])
             elif re.match('^/|^\w:\S{3}', playlist):
                 file = codecs.open(playlist, 'r', 'utf-8')
                 string = file.read()
