@@ -112,7 +112,7 @@ class MainWindow(QtWidgets.QWidget):
 
     def send_request(self, host, port=80, loc='/',
                      method='GET', timeout=10, params='', headers={}, warn=True):
-        conn = http.client.HTTPSConnection(host, port, timeout=timeout) if port == 443\
+        conn = http.client.HTTPSConnection(host, timeout=timeout) if port == 443\
             else http.client.HTTPConnection(host, port, timeout=timeout)
         req = ''
         try:
