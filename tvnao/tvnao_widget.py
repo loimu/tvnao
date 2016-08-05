@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'tvnao/tvnao_widget.ui'
+# Form implementation generated from reading ui file 'tvnao_widget.ui'
 #
 # Created by: PyQt5 UI code generator 5.5.1
 #
@@ -44,6 +44,7 @@ class Ui_Form(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.lineEditFilter = QtWidgets.QLineEdit(Form)
+        self.lineEditFilter.setClearButtonEnabled(True)
         self.lineEditFilter.setObjectName("lineEditFilter")
         self.horizontalLayout.addWidget(self.lineEditFilter)
         self.buttonMenu = QtWidgets.QPushButton(Form)

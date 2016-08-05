@@ -214,7 +214,8 @@ class MainWindow(QtWidgets.QWidget):
         if self.ui.guideBrowser.isVisible():
             if self.ui.listWidget.count() < 1:
                 return
-            key = re.sub('^\d{1,3}\.\s{1,2}', '', self.ui.listWidget.currentItem().text()).lower()
+            key = re.sub('^\d{1,3}\.\s{1,2}', '',
+                         self.ui.listWidget.currentItem().text()).lower()
             if key not in self.index:
                 self.ui.guideBrowser.setText('<b>not available</b>')
                 return

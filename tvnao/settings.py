@@ -44,6 +44,7 @@ class Settings(QtWidgets.QDialog):
         super(Settings, self).__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
+        self.ui.errorLabel.setVisible(False)
         self.ui.playlistHost.setText(self.settings.value('playlist/host', type=str))
         self.ui.playlistURL.setText(self.settings.value('playlist/url', type=str))
         self.ui.playerPath.setText(self.settings.value('player/path', type=str))
@@ -52,10 +53,12 @@ class Settings(QtWidgets.QDialog):
         self.ui.epgHost.setText(self.epg_host)
         self.ui.epgIndex.setText(self.settings.value('epg/index', type=str))
         self.ui.epgURL.setText(self.settings.value('epg/url', type=str))
+        self.ui.tableAliases.horizontalHeader().setStretchLastSection(True)
         self.fill_table(self.settings.value('epg/aliases', type=str))
         self.setWindowIcon(QtGui.QIcon.fromTheme('configure', QtGui.QIcon(':/icons/configure.svg')))
 
     def fill_table(self, input):
+        self.ui.tableAliases.setHorizontalHeaderLabels(['Playlist Entries', 'Guide Entries'])
         aliases = input.split('|')
         divider = ','
         if not divider in aliases[0]:
@@ -77,27 +80,26 @@ class Settings(QtWidgets.QDialog):
         self.settings.setValue('epg/index', self.ui.epgIndex.text())
         self.settings.setValue('epg/url', self.ui.epgURL.text())
         aliases = ''
+        counter = 0
         for i in range(0, self.ui.tableAliases.rowCount()):
-            if i != 0:
-                aliases += '|'
-            aliases += self.ui.tableAliases.item(i, 0).text().lower() + ',' + \
-            self.ui.tableAliases.item(i, 1).text().lower()
+            if hasattr(self.ui.tableAliases.item(i, 0), 'text') and \
+                hasattr(self.ui.tableAliases.item(i, 1), 'text'):
+                playlist_name = self.ui.tableAliases.item(i, 0).text().lower().strip(',|')
+                guide_name = self.ui.tableAliases.item(i, 1).text().lower().strip(',|')
+                if len(playlist_name) > 0 and len(guide_name) > 0:
+                    if counter > 0:
+                        aliases += '|'
+                    counter += 1
+                    aliases += playlist_name + ',' + guide_name
         self.settings.setValue('epg/aliases', aliases)
         if self.epg_host != self.ui.epgHost.text():
             self.settings.setValue('epg/cache', '')
 
     @pyqtSlot()
     def on_aliasAddButton_released(self):
-        if self.ui.aliasPlaylist.text()=='' or self.ui.aliasGuide.text()=='':
-            self.ui.errorLabel.setText('<b>fields should not be empty</b>')
-            return
         row = self.ui.tableAliases.rowCount()
         self.ui.tableAliases.setRowCount(row + 1)
-        self.ui.tableAliases.setItem(row, 0, QtWidgets.QTableWidgetItem(self.ui.aliasPlaylist.text()))
-        self.ui.tableAliases.setItem(row, 1, QtWidgets.QTableWidgetItem(self.ui.aliasGuide.text()))
-        self.ui.aliasPlaylist.clear()
-        self.ui.aliasGuide.clear()
-        self.ui.errorLabel.setText('')
+        self.ui.tableAliases.setCurrentCell(row, 0)
 
     @pyqtSlot()
     def on_aliasDelButton_released(self):
