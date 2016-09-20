@@ -10,12 +10,14 @@ from PyQt5.QtCore import QSettings, pyqtSlot
 
 from .settings_dialog import Ui_Dialog
 
+
 class Settings(QtWidgets.QDialog):
     settings = QSettings('tvnao', 'tvnao')
     defaults = {
         'playlist/host':  'iptv.isp.domain',
         'playlist/url':   '/iptv_playlist.m3u',
-        'player/options': '--network-timeout=60 --no-ytdl --force-window=immediate',
+        'player/options': '--network-timeout=60 --no-ytdl '
+                          '--force-window=immediate',
         'epg/host':       'localhost:8089',
         'epg/index':      '/epg',
         'epg/url':        '/viewProgram',
@@ -37,7 +39,8 @@ class Settings(QtWidgets.QDialog):
     def player_detect():
         if 'win' in sys.platform:
             return 'mpv'
-        player = subprocess.getoutput('which mpv mplayer mplayer2').split('\n')[0]
+        player = subprocess.getoutput('which mpv mplayer mplayer2')\
+            .split('\n')[0]
         return player if player else 'mpv'
 
     def __init__(self):
@@ -45,30 +48,39 @@ class Settings(QtWidgets.QDialog):
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         self.ui.errorLabel.setVisible(False)
-        self.ui.playlistHost.setText(self.settings.value('playlist/host', type=str))
-        self.ui.playlistURL.setText(self.settings.value('playlist/url', type=str))
-        self.ui.playerPath.setText(self.settings.value('player/path', type=str))
-        self.ui.playerOptions.setText(self.settings.value('player/options', type=str))
+        self.ui.playlistHost.setText(
+            self.settings.value('playlist/host', type=str))
+        self.ui.playlistURL.setText(
+            self.settings.value('playlist/url', type=str))
+        self.ui.playerPath.setText(
+            self.settings.value('player/path', type=str))
+        self.ui.playerOptions.setText(
+            self.settings.value('player/options', type=str))
         self.epg_host = self.settings.value('epg/host', type=str)
         self.ui.epgHost.setText(self.epg_host)
         self.ui.epgIndex.setText(self.settings.value('epg/index', type=str))
         self.ui.epgURL.setText(self.settings.value('epg/url', type=str))
         self.ui.tableAliases.horizontalHeader().setStretchLastSection(True)
         self.fill_table(self.settings.value('epg/aliases', type=str))
-        self.setWindowIcon(QtGui.QIcon.fromTheme('configure', QtGui.QIcon(':/icons/configure.svg')))
+        self.setWindowIcon(
+            QtGui.QIcon.fromTheme('configure',
+                                  QtGui.QIcon(':/icons/configure.svg')))
 
     def fill_table(self, input):
-        self.ui.tableAliases.setHorizontalHeaderLabels(['Playlist Entries', 'Guide Entries'])
+        self.ui.tableAliases.setHorizontalHeaderLabels(['Playlist Entries',
+                                                        'Guide Entries'])
         aliases = input.split('|')
         divider = ','
-        if not divider in aliases[0]:
+        if divider not in aliases[0]:
             return
         self.ui.tableAliases.setRowCount(len(aliases))
         for i, alias in enumerate(aliases):
             pair = alias.split(divider)
             if len(pair) > 1:
-                self.ui.tableAliases.setItem(i, 0, QtWidgets.QTableWidgetItem(pair[0]))
-                self.ui.tableAliases.setItem(i, 1, QtWidgets.QTableWidgetItem(pair[1]))
+                self.ui.tableAliases.setItem(
+                    i, 0, QtWidgets.QTableWidgetItem(pair[0]))
+                self.ui.tableAliases.setItem(
+                    i, 1, QtWidgets.QTableWidgetItem(pair[1]))
 
     @pyqtSlot(name='on_buttonBox_accepted')
     def save(self):
@@ -83,9 +95,11 @@ class Settings(QtWidgets.QDialog):
         counter = 0
         for i in range(0, self.ui.tableAliases.rowCount()):
             if hasattr(self.ui.tableAliases.item(i, 0), 'text') and \
-                hasattr(self.ui.tableAliases.item(i, 1), 'text'):
-                playlist_name = self.ui.tableAliases.item(i, 0).text().lower().strip(',|')
-                guide_name = self.ui.tableAliases.item(i, 1).text().lower().strip(',|')
+                    hasattr(self.ui.tableAliases.item(i, 1), 'text'):
+                playlist_name = self.ui.tableAliases.item(i, 0)\
+                    .text().lower().strip(',|')
+                guide_name = self.ui.tableAliases.item(i, 1)\
+                    .text().lower().strip(',|')
                 if len(playlist_name) > 0 and len(guide_name) > 0:
                     if counter > 0:
                         aliases += '|'
