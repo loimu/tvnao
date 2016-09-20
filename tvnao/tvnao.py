@@ -17,11 +17,13 @@ from .tvnao_widget import Ui_Form
 from .settings import Settings
 from .tvnao_rc import *
 
+
 class ListItem(QtWidgets.QListWidgetItem):
     address = ''
 
     def __init__(self):
         super(ListItem, self).__init__()
+
 
 class MainWindow(QtWidgets.QWidget):
     list = []
@@ -34,7 +36,10 @@ class MainWindow(QtWidgets.QWidget):
         # actions setup
         quit_action = QtWidgets.QAction(self)
         self.addAction(quit_action)
+        quit_action.setText('Quit')
         quit_action.setShortcut('Ctrl+Q')
+        quit_action.setIcon(QtGui.QIcon.fromTheme(
+            'application-exit', QtGui.QIcon(':/icons/application-exit.svg')))
         quit_action.triggered.connect(self.close)
         show_hide_action = QtWidgets.QAction(self)
         self.addAction(show_hide_action)
@@ -48,20 +53,20 @@ class MainWindow(QtWidgets.QWidget):
         self.addAction(refresh_action)
         refresh_action.setText('Refresh')
         refresh_action.setShortcut('Ctrl+R')
-        refresh_action.setIcon(QtGui.QIcon.fromTheme('view-refresh',
-                             QtGui.QIcon(':/icons/view-refresh.svg')))
+        refresh_action.setIcon(QtGui.QIcon.fromTheme(
+            'view-refresh', QtGui.QIcon(':/icons/view-refresh.svg')))
         refresh_action.triggered.connect(self.refresh_all)
         settings_action = QtWidgets.QAction(self)
         self.addAction(settings_action)
         settings_action.setText('Settings')
         settings_action.setShortcut('Ctrl+P')
-        settings_action.setIcon(QtGui.QIcon.fromTheme('configure',
-                              QtGui.QIcon(':/icons/configure.svg')))
+        settings_action.setIcon(QtGui.QIcon.fromTheme(
+            'configure', QtGui.QIcon(':/icons/configure.svg')))
         settings_action.triggered.connect(self.show_settings)
         about_action = QtWidgets.QAction(self)
         about_action.setText('About')
-        about_action.setIcon(QtGui.QIcon.fromTheme('video-television',
-                           QtGui.QIcon(':/icons/video-television.svg')))
+        about_action.setIcon(QtGui.QIcon.fromTheme(
+            'video-television', QtGui.QIcon(':/icons/video-television.svg')))
         about_action.triggered.connect(self.show_about)
         # signal/slot setup
         self.ui.buttonGo.released.connect(self.run_player)
@@ -74,20 +79,23 @@ class MainWindow(QtWidgets.QWidget):
         menu.addAction(settings_action)
         menu.addSeparator()
         menu.addAction(about_action)
-        self.ui.buttonMenu.setIcon(QtGui.QIcon.fromTheme('video-television',
-                                 QtGui.QIcon(':/icons/video-television.svg')))
+        menu.addSeparator()
+        menu.addAction(quit_action)
+        self.ui.buttonMenu.setIcon(QtGui.QIcon.fromTheme(
+            'video-television', QtGui.QIcon(':/icons/video-television.svg')))
         self.ui.buttonMenu.setMenu(menu)
-        self.ui.buttonGo.setIcon(QtGui.QIcon.fromTheme('media-playback-start',
-                               QtGui.QIcon(':/icons/media-playback-start.svg')))
+        self.ui.buttonGo.setIcon(QtGui.QIcon.fromTheme(
+            'media-playback-start',
+            QtGui.QIcon(':/icons/media-playback-start.svg')))
         self.set_guide_visibility(False)
-        QtWidgets.QScroller.grabGesture(self.ui.listWidget,
-                                        QtWidgets.QScroller.TouchGesture)
+        QtWidgets.QScroller.grabGesture(
+            self.ui.listWidget, QtWidgets.QScroller.TouchGesture)
         Settings.first_run()
         self.load_settings()
 
     def load_settings(self):
         self.playlist_host = Settings.settings.value('playlist/host', type=str)
-        self.playlist_url = Settings.settings.value('playlist/url',type=str)
+        self.playlist_url = Settings.settings.value('playlist/url', type=str)
         self.player = Settings.settings.value('player/path', type=str)
         self.options = Settings.settings.value('player/options', type=str)
         host = Settings.settings.value('epg/host', type=str).split(':')
@@ -110,9 +118,10 @@ class MainWindow(QtWidgets.QWidget):
                 if len(pair) > 1:
                     self.index[pair[0]] = pair[1]
 
-    def send_request(self, host, port=80, loc='/',
-                     method='GET', timeout=10, params='', headers={}, warn=True):
-        conn = http.client.HTTPSConnection(host, timeout=timeout) if port == 443\
+    def send_request(self, host, port=80, loc='/', method='GET',
+                     timeout=10, params='', headers={}, warn=True):
+        conn = http.client.HTTPSConnection(host, timeout=timeout)\
+            if port == 443\
             else http.client.HTTPConnection(host, port, timeout=timeout)
         req = ''
         try:
@@ -127,8 +136,9 @@ class MainWindow(QtWidgets.QWidget):
             req = self.read_request(conn.getresponse())
         except:
             if warn:
-                QtWidgets.QMessageBox.warning(self, 'Connection timeout',
-                                              'Server is busy or connection is slow')
+                QtWidgets.QMessageBox.warning(
+                    self, 'Connection timeout',
+                    'Server is busy or connection is slow')
             else:
                 return 'Connection timeout'
         return req
@@ -137,8 +147,8 @@ class MainWindow(QtWidgets.QWidget):
         try:
             return request.read().decode('utf-8')
         except ValueError:
-            QtWidgets.QMessageBox.warning(self, 'Unicode error',
-                                          'Wrong encoding of the remote file')
+            QtWidgets.QMessageBox.warning(
+                self, 'Unicode error', 'Wrong encoding of the remote file')
             return ''
 
     def refresh_all(self):
@@ -152,7 +162,8 @@ class MainWindow(QtWidgets.QWidget):
         self.list = []
         counter = 0
         print('getting remote playlist...')
-        request = self.send_request(host=self.playlist_host, loc=self.playlist_url)
+        request = self.send_request(host=self.playlist_host,
+                                    loc=self.playlist_url)
         request += self.add_playlist()
         for line in request.splitlines():
             if line.startswith('#EXTINF'):
@@ -169,7 +180,8 @@ class MainWindow(QtWidgets.QWidget):
             item = ListItem()
             item.setText(entry[0])
             item.address = entry[1]
-            icon = 'camera-web' if 'амера' in entry[0] else 'video-webm'
+            icon = 'camera-web' if re.match('^\d+\.\s(ул\.|б-р\.|пр-т\.|пл).*',
+                                            entry[0]) else 'video-webm'
             item.setIcon(QtGui.QIcon.fromTheme(icon))
             self.ui.listWidget.addItem(item)
 
@@ -181,6 +193,10 @@ class MainWindow(QtWidgets.QWidget):
                 item = ListItem()
                 item.setText(entry[0])
                 item.address = entry[1]
+                icon = 'camera-web' if re.match(
+                    '^\d+\.\s(ул\.|б-р\.|пр-т\.|пл).*',
+                    entry[0]) else 'video-webm'
+                item.setIcon(QtGui.QIcon.fromTheme(icon))
                 self.ui.listWidget.addItem(item)
 
     def run_player(self):
@@ -223,13 +239,16 @@ class MainWindow(QtWidgets.QWidget):
             date = int(datetime.date.today().strftime("%Y%m%d"))
             if self.ui.guideNextButton.isChecked():
                 date += 1
-            all_day = self.ui.guideNextButton.isChecked() or self.ui.guideFullButton.isChecked()
+            all_day = self.ui.guideNextButton.isChecked() or\
+                self.ui.guideFullButton.isChecked()
             schedule = 'toggle_all_day' if all_day else 'toggle_now_day'
             params = urllib.parse.urlencode({'id': id, 'date': date,
-                                         'schedule': schedule, 'start': 0})
-            headers = {'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'Accept': 'text/html'}
-            data = self.send_request(self.epg_host, self.epg_port, self.epg_url,
-                            method='POST', timeout=5, params=params, headers=headers, warn=False)
+                                             'schedule': schedule, 'start': 0})
+            headers = {'Content-type': 'application/x-www-form-urlencoded;'
+                       'charset=UTF-8', 'Accept': 'text/html'}
+            data = self.send_request(
+                self.epg_host, self.epg_port, self.epg_url, method='POST',
+                timeout=5, params=params, headers=headers, warn=False)
             format = re.sub('\<div.*?\</div\>|\<hr\>', '', data)\
                 .replace("class='before'", 'style="color:gray;"')\
                 .replace("class='in'", 'style="color:indigo;"')
@@ -250,8 +269,10 @@ class MainWindow(QtWidgets.QWidget):
     def refresh_guide_index(self):
         print('refreshing epg index...')
         self.index.clear()
-        request = self.send_request(self.epg_host, self.epg_port, self.epg_index)
-        objects = re.finditer('id=\'(\d{1,7}?)\'.*?&nbsp;(.*?)\</td', request, flags=re.DOTALL)
+        request = self.send_request(
+            self.epg_host, self.epg_port, self.epg_index)
+        objects = re.finditer('id=\'(\d{1,7}?)\'.*?&nbsp;(.*?)\</td', request,
+                              flags=re.DOTALL)
         for o in objects:
             self.index[o.group(2).lower()] = o.group(1)
         aliases = Settings.settings.value('epg/aliases', type=str).split('|')
@@ -288,10 +309,13 @@ class MainWindow(QtWidgets.QWidget):
         settings_dialog.destroyed.connect(self.load_settings)
 
     def show_about(self):
-        QtWidgets.QMessageBox.about(self, 'About tvnao',
+        QtWidgets.QMessageBox.about(
+            self, 'About tvnao',
             '<p><b>tvnao</b> v0.6 &copy; 2016 Blaze</p>'
             '<p>&lt;blaze@vivaldi.net&gt;</p>'
-            '<p><a href="https://bitbucket.org/blaze/tvnao">bitbucket.org/blaze/tvnao</a></p>')
+            '<p><a href="https://bitbucket.org/blaze/tvnao">'
+            'bitbucket.org/blaze/tvnao</a></p>')
+
 
 def main():
     if sys.hexversion < 0x30400f0:
@@ -301,7 +325,8 @@ def main():
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)
     app = QtWidgets.QApplication(sys.argv)
     tv_widget = MainWindow()
-    tv_widget.setWindowIcon(QtGui.QIcon.fromTheme('video-television', QtGui.QIcon(':/icons/video-television.svg')))
+    tv_widget.setWindowIcon(QtGui.QIcon.fromTheme(
+        'video-television', QtGui.QIcon(':/icons/video-television.svg')))
     tv_widget.show()
     tv_widget.update_list_widget()
     sys.exit(app.exec_())
