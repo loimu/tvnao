@@ -180,9 +180,7 @@ class MainWindow(QtWidgets.QWidget):
             item = ListItem()
             item.setText(entry[0])
             item.address = entry[1]
-            icon = 'camera-web' if re.match('^\d+\.\s(ул\.|б-р\.|пр-т\.|пл).*',
-                                            entry[0]) else 'video-webm'
-            item.setIcon(QtGui.QIcon.fromTheme(icon))
+            item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
             self.ui.listWidget.addItem(item)
 
     @pyqtSlot(str, name='on_lineEditFilter_textEdited')
@@ -193,10 +191,7 @@ class MainWindow(QtWidgets.QWidget):
                 item = ListItem()
                 item.setText(entry[0])
                 item.address = entry[1]
-                icon = 'camera-web' if re.match(
-                    '^\d+\.\s(ул\.|б-р\.|пр-т\.|пл).*',
-                    entry[0]) else 'video-webm'
-                item.setIcon(QtGui.QIcon.fromTheme(icon))
+                item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
                 self.ui.listWidget.addItem(item)
 
     def run_player(self):

@@ -17,7 +17,7 @@ class Settings(QtWidgets.QDialog):
         'playlist/host':  'iptv.isp.domain',
         'playlist/url':   '/iptv_playlist.m3u',
         'player/options': '--network-timeout=60 --no-ytdl '
-                          '--force-window=immediate',
+                          '--force-window=immediate --no-resume-playback',
         'epg/host':       'localhost:8089',
         'epg/index':      '/epg',
         'epg/url':        '/viewProgram',
