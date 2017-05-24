@@ -1,6 +1,18 @@
-# Copyright (c) 2016 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2017 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
+
+'''
+    In order to build the tv guide database this script takes
+    an input file channels.txt formatted like so:
+
+        str:channel1_name,int:channel1_id\n
+        str:channel2_name,int:channel2_id\n
+        ...
+
+    It can be created even by hand
+'''
+
 
 import sys
 import zipfile
@@ -11,6 +23,7 @@ import sqlite3
 import codecs
 import requests
 import os.path
+
 
 def parse_titles(data):
     if data[0:26] != b'JTV 3.x TV Program Data\n\n\n':
@@ -25,10 +38,13 @@ def parse_titles(data):
         titles.append(title)
     return titles
 
+
 def filetime_to_datetime(time, offset):
     filetime = struct.unpack("<Q", time)[0]
     timestamp = filetime/10 + offset * 3.6e+9
-    return datetime.datetime(1601, 1, 1) + datetime.timedelta(microseconds=timestamp)
+    return datetime.datetime(1601, 1, 1)\
+        + datetime.timedelta(microseconds=timestamp)
+
 
 def parse_schedule(data, offset):
     schedules = []
@@ -42,11 +58,13 @@ def parse_schedule(data, offset):
         schedules.append(filetime_to_datetime(record[2:-2], offset))
     return schedules
 
+
 def download_file(link, filename):
     print('downloading file ' + filename)
     r = requests.get(link)
     with open(filename, "wb") as file:
         file.write(r.content)
+
 
 def create_database(dbname):
     print('creating database ' + dbname)
@@ -60,8 +78,9 @@ def create_database(dbname):
     conn.commit()
     conn.close()
 
+
 def read_replacements(fname):
-    result = {}
+    channels = {}
     if os.path.isfile(fname):
         repl_file = codecs.open(fname, 'r', 'utf-8')
         lines = repl_file.read().splitlines()
@@ -69,16 +88,16 @@ def read_replacements(fname):
         for line in lines:
             entry = line.split(',')
             if len(entry) > 1:
-                result[entry[0]] = entry[1]
-    return result
+                channels[entry[0]] = entry[1]
+    return channels
+
 
 def add_to_database(dbname, jtv_filename, offset):
     print('writing into database ' + dbname)
-    replacements = read_replacements('replacement.txt')
+    channels = read_replacements('channels.txt')
     conn = sqlite3.connect(dbname)
     c = conn.cursor()
     archive = zipfile.ZipFile(jtv_filename, 'r')
-    channel_id = 0
     for filename in archive.namelist():
         if filename.endswith('.pdt'):
             try:
@@ -86,15 +105,11 @@ def add_to_database(dbname, jtv_filename, offset):
             except ValueError:
                 unicode_name = bytes(filename, 'utf-8')
             channel_name = unicode_name[0:-4].replace('_', ' ')
-            if channel_name in replacements:
-                channel_name = replacements[channel_name]
-            channel_id += 1
+            if channel_name not in channels:
+                continue
+            channel_id = int(channels[channel_name])
             channel = (channel_id, channel_name, )
             c.execute('INSERT INTO channels VALUES (?,?)', channel)
-    channel_id = 0
-    for filename in archive.namelist():
-        if filename.endswith('.pdt'):
-            channel_id += 1
             titles = archive.read(filename)
             channel_titles = parse_titles(titles)
             schedules = archive.read(filename[0:-4] + ".ndx")
@@ -103,16 +118,17 @@ def add_to_database(dbname, jtv_filename, offset):
             for curr_title in channel_titles:
                 if i < len(channel_schedules) - 1:
                     time_format = '%Y%m%d%H%M%S'
-                    programme = (channel_id,
-                                 channel_schedules[i].strftime(time_format),
-                                 channel_schedules[i+1].strftime(time_format),
-                                 curr_title,
-                                 )
-                    c.execute('INSERT INTO programme VALUES (?,?,?,?)', programme)
+                    entry = (channel_id,
+                             channel_schedules[i].strftime(time_format),
+                             channel_schedules[i + 1].strftime(time_format),
+                             curr_title,
+                             )
+                    c.execute('INSERT INTO programme VALUES (?,?,?,?)', entry)
                     i += 1
     archive.close()
     conn.commit()
     conn.close()
+
 
 def main():
     parser = argparse.ArgumentParser()

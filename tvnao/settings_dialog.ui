@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>576</height>
+    <height>375</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -114,13 +114,6 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Index:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QLabel" name="label_7">
             <property name="text">
              <string>URL:</string>
@@ -135,135 +128,13 @@
            <widget class="QLineEdit" name="epgHost"/>
           </item>
           <item>
-           <widget class="QLineEdit" name="epgIndex"/>
-          </item>
-          <item>
            <widget class="QLineEdit" name="epgURL"/>
           </item>
          </layout>
         </item>
        </layout>
       </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayoutAl">
-        <item>
-         <widget class="QLabel" name="label_8">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Replacements:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="aliasAddButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="toolTip">
-           <string>Connect channel name in playlist to a name in TV guide</string>
-          </property>
-          <property name="text">
-           <string>Add</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="aliasDelButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="text">
-           <string>Del</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QTableWidget" name="tableAliases">
-        <property name="toolTip">
-         <string>channel name from playlist / channel name from TV guide</string>
-        </property>
-        <property name="editTriggers">
-         <set>QAbstractItemView::AllEditTriggers</set>
-        </property>
-        <property name="tabKeyNavigation">
-         <bool>true</bool>
-        </property>
-        <property name="showDropIndicator" stdset="0">
-         <bool>false</bool>
-        </property>
-        <property name="alternatingRowColors">
-         <bool>true</bool>
-        </property>
-        <property name="selectionMode">
-         <enum>QAbstractItemView::SingleSelection</enum>
-        </property>
-        <property name="selectionBehavior">
-         <enum>QAbstractItemView::SelectRows</enum>
-        </property>
-        <property name="sortingEnabled">
-         <bool>true</bool>
-        </property>
-        <property name="columnCount">
-         <number>2</number>
-        </property>
-        <attribute name="horizontalHeaderVisible">
-         <bool>true</bool>
-        </attribute>
-        <attribute name="horizontalHeaderCascadingSectionResizes">
-         <bool>true</bool>
-        </attribute>
-        <attribute name="horizontalHeaderDefaultSectionSize">
-         <number>165</number>
-        </attribute>
-        <attribute name="verticalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
-        <column/>
-        <column/>
-       </widget>
-      </item>
      </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="errorLabel">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
     </widget>
    </item>
    <item>

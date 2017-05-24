@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2017 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
@@ -20,6 +20,7 @@ from .tvnao_rc import *
 
 class ListItem(QtWidgets.QListWidgetItem):
     address = ''
+    id = ''
 
     def __init__(self):
         super(ListItem, self).__init__()
@@ -27,7 +28,6 @@ class ListItem(QtWidgets.QListWidgetItem):
 
 class MainWindow(QtWidgets.QWidget):
     list = []
-    index = {}
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -103,57 +103,30 @@ class MainWindow(QtWidgets.QWidget):
         self.epg_port = 80
         if len(host) > 1:
             if host[1].isdigit():
-                port = int(host[1])
-                if port < 65535 and port >= 0:
-                    self.epg_port = port
+                self.epg_port = int(host[1])
         self.epg_url = Settings.settings.value('epg/url', type=str)
-        self.epg_index = Settings.settings.value('epg/index', type=str)
-        # check and load cache
-        if not bool(Settings.settings.value('epg/cache')):
-            self.refresh_guide_index()
-        else:
-            cache = Settings.settings.value('epg/cache', type=str).split('|')
-            for i, entry in enumerate(cache):
-                pair = entry.split(',')
-                if len(pair) > 1:
-                    self.index[pair[0]] = pair[1]
 
-    def send_request(self, host, port=80, loc='/', method='GET',
-                     timeout=10, params='', headers={}, warn=True):
-        conn = http.client.HTTPSConnection(host, timeout=timeout)\
+    def send_request(self, host, port=80, loc='/',
+                     method='GET', params=None, headers={}, warn=True):
+        conn = http.client.HTTPSConnection(host, timeout=3)\
             if port == 443\
-            else http.client.HTTPConnection(host, port, timeout=timeout)
-        req = ''
+            else http.client.HTTPConnection(host, port, timeout=3)
+        message = None
         try:
             conn.request(method, loc, params, headers)
+            response = conn.getresponse()
+            out = response.read().decode('utf-8')
         except OSError:
-            if warn:
-                QtWidgets.QMessageBox.warning(self, 'Network error',
-                                              'Check your network connection')
-            else:
-                return 'Network error'
-        try:
-            req = self.read_request(conn.getresponse())
-        except:
-            if warn:
-                QtWidgets.QMessageBox.warning(
-                    self, 'Connection timeout',
-                    'Server is busy or connection is slow')
-            else:
-                return 'Connection timeout'
-        return req
-
-    def read_request(self, request):
-        try:
-            return request.read().decode('utf-8')
+            out, message = 'Network error', 'Check your network connection'
         except ValueError:
-            QtWidgets.QMessageBox.warning(
-                self, 'Unicode error', 'Wrong encoding of the remote file')
-            return ''
+            out, message = 'Unicode error', 'Wrong encoding of the remote file'
+        except:
+            out, message = 'Timeout', 'Server is busy or connection too slow'
+        if warn and message:
+            QtWidgets.QMessageBox.warning(self, out, message)
+        return out
 
     def refresh_all(self):
-        Settings.settings.setValue('epg/cache', '')
-        self.refresh_guide_index()
         self.update_list_widget()
         if self.ui.listWidget.count() > 0:
             self.ui.listWidget.setCurrentRow(0)
@@ -164,14 +137,19 @@ class MainWindow(QtWidgets.QWidget):
         print('getting remote playlist...')
         request = self.send_request(host=self.playlist_host,
                                     loc=self.playlist_url)
-        request += self.add_playlist()
+        request += self.append_local_file()
         for line in request.splitlines():
             if line.startswith('#EXTINF'):
                 counter += 1
                 name = '%s. %s' % (counter, line.split(',')[1])
+                match = re.match('.*tvg-id=(\d+).*', line)
+                id = match.group(1) if match else None
+                title = re.match('.*group-title=\"(.+)\".*', line)
+                if title:
+                    self.list.append((title.group(1), None, None))
             elif line.startswith('udp://') or line.startswith('http://'):
                 addr = line
-                self.list.append((name, addr))
+                self.list.append((name, addr, id))
 
     def update_list_widget(self):
         self.refresh_list()
@@ -179,22 +157,31 @@ class MainWindow(QtWidgets.QWidget):
         for entry in self.list:
             item = ListItem()
             item.setText(entry[0])
-            item.address = entry[1]
-            item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
+            if entry[1]:
+                item.address = entry[1]
+            if entry[2]:
+                item.id = entry[2]
+                item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
             self.ui.listWidget.addItem(item)
 
     @pyqtSlot(str, name='on_lineEditFilter_textEdited')
     def filter(self, string):
         self.ui.listWidget.clear()
         for entry in self.list:
-            if string.lower() in entry[0].lower():
+            if string.lower() in entry[0].lower() or not entry[2]:
                 item = ListItem()
                 item.setText(entry[0])
-                item.address = entry[1]
-                item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
+                if entry[1]:
+                    item.address = entry[1]
+                if entry[2]:
+                    item.id = entry[2]
+                    item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
                 self.ui.listWidget.addItem(item)
 
     def run_player(self):
+        address = self.ui.listWidget.currentItem().address
+        if not address:
+            return
         command = [self.player]
         options = self.options.split()
         if options[0] != '':
@@ -225,12 +212,10 @@ class MainWindow(QtWidgets.QWidget):
         if self.ui.guideBrowser.isVisible():
             if self.ui.listWidget.count() < 1:
                 return
-            key = re.sub('^\d{1,3}\.\s{1,2}', '',
-                         self.ui.listWidget.currentItem().text()).lower()
-            if key not in self.index:
+            id = self.ui.listWidget.currentItem().id
+            if not id:
                 self.ui.guideBrowser.setText('<b>not available</b>')
                 return
-            id = self.index[key]
             date = int(datetime.date.today().strftime("%Y%m%d"))
             if self.ui.guideNextButton.isChecked():
                 date += 1
@@ -243,7 +228,7 @@ class MainWindow(QtWidgets.QWidget):
                        'charset=UTF-8', 'Accept': 'text/html'}
             data = self.send_request(
                 self.epg_host, self.epg_port, self.epg_url, method='POST',
-                timeout=5, params=params, headers=headers, warn=False)
+                params=params, headers=headers, warn=False)
             format = re.sub('\<div.*?\</div\>|\<hr\>', '', data)\
                 .replace("class='before'", 'style="color:gray;"')\
                 .replace("class='in'", 'style="color:indigo;"')
@@ -261,42 +246,15 @@ class MainWindow(QtWidgets.QWidget):
         self.ui.guideFullButton.setChecked(False)
         self.update_guide()
 
-    def refresh_guide_index(self):
-        print('refreshing epg index...')
-        self.index.clear()
-        request = self.send_request(
-            self.epg_host, self.epg_port, self.epg_index)
-        objects = re.finditer('id=\'(\d{1,7}?)\'.*?&nbsp;(.*?)\</td', request,
-                              flags=re.DOTALL)
-        for o in objects:
-            self.index[o.group(2).lower()] = o.group(1)
-        aliases = Settings.settings.value('epg/aliases', type=str).split('|')
-        for alias in aliases:
-            pair = alias.split(',')
-            if len(pair) > 1 and pair[1] in self.index:
-                self.index[pair[0]] = self.index.pop(pair[1])
-        cache = ''
-        for i, entry in enumerate(self.index):
-            if i != 0:
-                cache += '|'
-            cache += entry + ',' + self.index[entry]
-        Settings.settings.setValue('epg/cache', cache)
-
-    def add_playlist(self):
-        string = ''
+    def append_local_file(self):
         if len(sys.argv) > 1:
-            playlist = sys.argv[1]
-            if playlist.startswith('http'):
-                playlist = re.split('https?://(.*)(\/.*)', playlist)
-                string = self.send_request(host=playlist[1], loc=playlist[2])
-            elif re.match('^/|^\w:\S{3}', playlist):
-                file = codecs.open(playlist, 'r', 'utf-8')
-                string = file.read()
-                file.close()
-            if '#EXTM3U' not in string[:9]:
+            with codecs.open(sys.argv[1], 'r', 'utf-8') as local_playlist:
+                file_contents = local_playlist.read()
+            if '#EXTM3U' not in file_contents[:9]:
                 print('E: contents of additional playlist are not valid')
-                string = ''
-        return string.replace('#EXTM3U', '', 1)
+            else:
+                return file_contents.replace('#EXTM3U', '', 1)
+        return ''
 
     def show_settings(self):
         settings_dialog = Settings()
@@ -306,7 +264,7 @@ class MainWindow(QtWidgets.QWidget):
     def show_about(self):
         QtWidgets.QMessageBox.about(
             self, 'About tvnao',
-            '<p><b>tvnao</b> v0.6 &copy; 2016 Blaze</p>'
+            '<p><b>tvnao</b> v0.7 &copy; 2016-2017 Blaze</p>'
             '<p>&lt;blaze@vivaldi.net&gt;</p>'
             '<p><a href="https://bitbucket.org/blaze/tvnao">'
             'bitbucket.org/blaze/tvnao</a></p>')

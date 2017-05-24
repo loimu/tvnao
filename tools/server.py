@@ -1,4 +1,4 @@
-# Copyright (c) 2016 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2017 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
@@ -14,29 +14,32 @@ import argparse
 # get hh:mm formatted string
 ftime = lambda x: str(x)[-6:-4] + ':' + str(x)[-4:-2]
 # get formatted output
-formt = lambda x: '<tr><td{0}>{1}</td><td{0}><span>{2}</span></td></tr>'.format(x[0],ftime(x[1]),x[2])
+formt = lambda x: '<tr><td{0}>{1}</td><td{0}><span>{2}</span></td></tr>'\
+    .format(x[0], ftime(x[1]), x[2])
 # get timezone
 timezone = timezone('Europe/Minsk')
 
 conn = sqlite3.connect('schedule.db')
 c = conn.cursor()
 
+
 class customHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
-        if self.path=="/epg":
+        if self.path == "/epg":
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             response = '<table>'
             for r in c.execute('SELECT * FROM channels ;'):
-                response += '<tr><td id=\'%s\' >&nbsp;%s</td></tr>' % (r[0],r[1],)
+                response += '<tr><td id=\'%s\' >&nbsp;%s</td></tr>'\
+                    % (r[0], r[1], )
             response += '</table>'
             self.wfile.write(bytes(response, 'utf-8'))
         return
 
     def do_POST(self):
-        if self.path=="/viewProgram":
+        if self.path == "/viewProgram":
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
@@ -45,18 +48,21 @@ class customHandler(BaseHTTPRequestHandler):
             channel = fields['id'][0]
             date = fields['date'][0]
             today = datetime.datetime.now(timezone).strftime("%Y%m%d")
-            currtime = today + datetime.datetime.now(timezone).strftime("%H%M%S")
+            currtime = today + datetime.datetime.now(timezone)\
+                .strftime("%H%M%S")
             response = '<div class=\'title\'>&nbsp;&nbsp;0</div><hr><table>'
             if 'toggle_now_day' in fields['schedule'] and today == date:
                 select = (channel, currtime, )
-                for r in c.execute('SELECT * FROM programme WHERE channel = ? AND stop > ? LIMIT 5 ;', select):
+                for r in c.execute('''SELECT * FROM programme WHERE channel = ?
+                                    AND stop > ? LIMIT 5 ;''', select):
                     ins = ' class=\'in\'' if currtime > str(r[1]) else ''
                     response += formt((ins, r[1], r[3]))
             if 'toggle_all_day' in fields['schedule'] or today != date:
                 begin = date + '000000'
                 end = date + '235900'
                 select = (channel, begin, end, )
-                for r in c.execute('SELECT * FROM programme WHERE channel = ? AND stop > ? AND start < ? ;', select):
+                for r in c.execute('''SELECT * FROM programme WHERE channel = ?
+                                AND stop > ? AND start < ? ;''', select):
                     if currtime > str(r[1]) and currtime > str(r[2]):
                         response += formt((' class=\'before\'', r[1], r[3]))
                     elif currtime > str(r[1]) and currtime < str(r[2]):
@@ -69,6 +75,7 @@ class customHandler(BaseHTTPRequestHandler):
             self.wfile.write(bytes(response, 'utf-8'))
         return
 
+
 def run(host, port):
     server_address = (host, port)
     print('listening on %s:%s' % server_address)
@@ -78,6 +85,7 @@ def run(host, port):
     except KeyboardInterrupt:
         conn.close()
         print('\nexiting')
+
 
 def main():
     parser = argparse.ArgumentParser()
