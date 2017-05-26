@@ -189,9 +189,14 @@ class MainWindow(QtWidgets.QWidget):
         command.append('--force-media-title=' +
                        self.ui.listWidget.currentItem().text())
         command.append(self.ui.listWidget.currentItem().address)
-        process = subprocess.Popen(command, stdin=subprocess.DEVNULL,
-                                   stdout=subprocess.DEVNULL,
-                                   stderr=subprocess.DEVNULL)
+        try:
+            process = subprocess.Popen(command, stdin=subprocess.DEVNULL,
+                                       stdout=subprocess.DEVNULL,
+                                       stderr=subprocess.DEVNULL)
+        except FileNotFoundError:
+            QtWidgets.QMessageBox.warning(
+                self, "No such player", "Please check your settings")
+            return
         print('running new process with pid: %s\n  %s' % (str(process.pid),
                                                           str(command)))
 
@@ -267,7 +272,7 @@ class MainWindow(QtWidgets.QWidget):
             '<p><b>tvnao</b> v0.7 &copy; 2016-2017 Blaze</p>'
             '<p>&lt;blaze@vivaldi.net&gt;</p>'
             '<p><a href="https://bitbucket.org/blaze/tvnao">'
-            'bitbucket.org/blaze/tvnao</a></p>')
+            'https://bitbucket.org/blaze/tvnao</a></p>')
 
 
 def main():
