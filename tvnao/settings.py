@@ -58,6 +58,16 @@ class Settings(QtWidgets.QDialog):
         self.setWindowIcon(
             QtGui.QIcon.fromTheme('configure',
                                   QtGui.QIcon(':/icons/configure.svg')))
+        self.ui.playerButton.setIcon(
+            QtGui.QIcon.fromTheme('document-open',
+                                  QtGui.QIcon(':/icons/document-open.svg')))
+
+    @pyqtSlot()
+    def on_playerButton_released(self):
+        path = QtWidgets.QFileDialog.getOpenFileName(
+            self, 'Open player', '', "")[0]
+        if path:
+            self.ui.playerPath.setText(path)
 
     @pyqtSlot(name='on_buttonBox_accepted')
     def save(self):

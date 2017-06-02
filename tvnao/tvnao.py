@@ -270,7 +270,7 @@ class MainWindow(QtWidgets.QWidget):
     def show_about(self):
         QtWidgets.QMessageBox.about(
             self, 'About tvnao',
-            '<p><b>tvnao</b> v0.7.1 &copy; 2016-2017 Blaze</p>'
+            '<p><b>tvnao</b> v0.7.2 &copy; 2016-2017 Blaze</p>'
             '<p>&lt;blaze@vivaldi.net&gt;</p>'
             '<p><a href="https://bitbucket.org/blaze/tvnao">'
             'https://bitbucket.org/blaze/tvnao</a></p>')
