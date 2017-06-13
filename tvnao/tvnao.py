@@ -197,6 +197,8 @@ class MainWindow(QtWidgets.QWidget):
                 self.process.send_signal(2)
             except ProcessLookupError:
                 pass
+            except:
+                self.process.terminate()
         try:
             self.process = subprocess.Popen(command, stdin=subprocess.DEVNULL,
                                             stdout=subprocess.DEVNULL,
