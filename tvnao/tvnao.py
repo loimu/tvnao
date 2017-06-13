@@ -28,6 +28,7 @@ class ListItem(QtWidgets.QListWidgetItem):
 
 class MainWindow(QtWidgets.QWidget):
     list = []
+    process = None
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -98,6 +99,7 @@ class MainWindow(QtWidgets.QWidget):
         self.playlist_url = Settings.settings.value('playlist/url', type=str)
         self.player = Settings.settings.value('player/path', type=str)
         self.options = Settings.settings.value('player/options', type=str)
+        self.keep_single = Settings.settings.value('player/single', type=bool)
         host = Settings.settings.value('epg/host', type=str).split(':')
         self.epg_host = host[0]
         self.epg_port = 80
@@ -190,16 +192,21 @@ class MainWindow(QtWidgets.QWidget):
         if options:
             command += options
         command.append(self.ui.listWidget.currentItem().address)
+        if self.keep_single and self.process:
+            try:
+                self.process.send_signal(2)
+            except ProcessLookupError:
+                pass
         try:
-            process = subprocess.Popen(command, stdin=subprocess.DEVNULL,
-                                       stdout=subprocess.DEVNULL,
-                                       stderr=subprocess.DEVNULL)
+            self.process = subprocess.Popen(command, stdin=subprocess.DEVNULL,
+                                            stdout=subprocess.DEVNULL,
+                                            stderr=subprocess.DEVNULL)
         except FileNotFoundError:
             QtWidgets.QMessageBox.warning(
                 self, "No such player", "Please check your settings")
             return
-        print('running new process with pid: %s\n  %s' % (str(process.pid),
-                                                          str(command)))
+        print('running process with pid: %s\n  %s' % (str(self.process.pid),
+                                                      str(command)))
 
     def show_hide_guide(self):
         if self.ui.guideBrowser.isHidden():
@@ -270,7 +277,7 @@ class MainWindow(QtWidgets.QWidget):
     def show_about(self):
         QtWidgets.QMessageBox.about(
             self, 'About tvnao',
-            '<p><b>tvnao</b> v0.7.2 &copy; 2016-2017 Blaze</p>'
+            '<p><b>tvnao</b> v0.7.3 &copy; 2016-2017 Blaze</p>'
             '<p>&lt;blaze@vivaldi.net&gt;</p>'
             '<p><a href="https://bitbucket.org/blaze/tvnao">'
             'https://bitbucket.org/blaze/tvnao</a></p>')

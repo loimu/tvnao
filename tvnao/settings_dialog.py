@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(400, 380)
+        Dialog.resize(400, 412)
         self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBoxPlaylist = QtWidgets.QGroupBox(Dialog)
@@ -73,6 +73,9 @@ class Ui_Dialog(object):
         self.verticalLayout3.addWidget(self.playerOptions)
         self.horizontalLayoutPlayer.addLayout(self.verticalLayout3)
         self.verticalLayout_3.addLayout(self.horizontalLayoutPlayer)
+        self.playerSingle = QtWidgets.QCheckBox(self.groupBoxPlayer)
+        self.playerSingle.setObjectName("playerSingle")
+        self.verticalLayout_3.addWidget(self.playerSingle)
         self.verticalLayout.addWidget(self.groupBoxPlayer)
         self.groupBoxGuide = QtWidgets.QGroupBox(Dialog)
         self.groupBoxGuide.setObjectName("groupBoxGuide")
@@ -126,6 +129,7 @@ class Ui_Dialog(object):
         self.groupBoxPlayer.setTitle(_translate("Dialog", "Player"))
         self.label_3.setText(_translate("Dialog", "Path:"))
         self.label_4.setText(_translate("Dialog", "Options:"))
+        self.playerSingle.setText(_translate("Dialog", "Keep single player window"))
         self.groupBoxGuide.setTitle(_translate("Dialog", "Program Guide"))
         self.label_5.setText(_translate("Dialog", "Host:"))
         self.label_7.setText(_translate("Dialog", "URL:"))

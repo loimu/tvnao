@@ -14,12 +14,13 @@ from .settings_dialog import Ui_Dialog
 class Settings(QtWidgets.QDialog):
     settings = QSettings('tvnao', 'tvnao')
     defaults = {
-        'playlist/host':  'iptv.isp.domain',
-        'playlist/url':   '/iptv_playlist.m3u',
-        'player/options': '--network-timeout=60 --no-ytdl '
-                          '--force-window=immediate --no-resume-playback',
-        'epg/host':       'localhost:8089',
-        'epg/url':        '/viewProgram',
+        'playlist/host':    'iptv.isp.domain',
+        'playlist/url':     '/iptv_playlist.m3u',
+        'player/options':   '--network-timeout=60 --no-ytdl '
+                            '--force-window=immediate --no-resume-playback',
+        'player/single':    False,
+        'epg/host':         'localhost:8089',
+        'epg/url':          '/viewProgram',
         'tvnao/configured': True
     }
 
@@ -53,6 +54,8 @@ class Settings(QtWidgets.QDialog):
             self.settings.value('player/path', type=str))
         self.ui.playerOptions.setText(
             self.settings.value('player/options', type=str))
+        self.ui.playerSingle.setChecked(
+            self.settings.value('player/single', type=bool))
         self.ui.epgHost.setText(self.settings.value('epg/host', type=str))
         self.ui.epgURL.setText(self.settings.value('epg/url', type=str))
         self.setWindowIcon(
@@ -75,6 +78,8 @@ class Settings(QtWidgets.QDialog):
         self.settings.setValue('playlist/url', self.ui.playlistURL.text())
         self.settings.setValue('player/path', self.ui.playerPath.text())
         self.settings.setValue('player/options', self.ui.playerOptions.text())
+        self.settings.setValue('player/single',
+                               self.ui.playerSingle.isChecked())
         self.settings.setValue('epg/host', self.ui.epgHost.text())
         self.settings.setValue('epg/url', self.ui.epgURL.text())
 
