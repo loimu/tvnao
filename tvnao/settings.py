@@ -89,5 +89,6 @@ class Settings(QtWidgets.QDialog):
         self.ui.playlistURL.setText(self.defaults['playlist/url'])
         self.ui.playerPath.setText(Settings.player_detect())
         self.ui.playerOptions.setText(self.defaults['player/options'])
+        self.ui.playerSingle.setChecked(self.defaults['player/single'])
         self.ui.epgHost.setText(self.defaults['epg/host'])
         self.ui.epgURL.setText(self.defaults['epg/url'])
