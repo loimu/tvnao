@@ -194,11 +194,12 @@ class MainWindow(QtWidgets.QWidget):
         command.append(self.ui.listWidget.currentItem().address)
         if self.keep_single and self.process:
             try:
-                self.process.send_signal(2)
+                if 'win' in sys.platform:
+                    self.process.terminate()
+                else:
+                    self.process.send_signal(2)
             except ProcessLookupError:
                 pass
-            except:
-                self.process.terminate()
         try:
             self.process = subprocess.Popen(command, stdin=subprocess.DEVNULL,
                                             stdout=subprocess.DEVNULL,
