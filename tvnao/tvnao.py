@@ -161,23 +161,23 @@ class MainWindow(QtWidgets.QWidget):
             item.setText(entry[0])
             if entry[1]:
                 item.address = entry[1]
+                item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
             if entry[2]:
                 item.id = entry[2]
-                item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
             self.ui.listWidget.addItem(item)
 
     @pyqtSlot(str, name='on_lineEditFilter_textEdited')
     def filter(self, string):
         self.ui.listWidget.clear()
         for entry in self.list:
-            if string.lower() in entry[0].lower() or not entry[2]:
+            if string.lower() in entry[0].lower() or not entry[1]:
                 item = ListItem()
                 item.setText(entry[0])
                 if entry[1]:
                     item.address = entry[1]
+                    item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
                 if entry[2]:
                     item.id = entry[2]
-                    item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
                 self.ui.listWidget.addItem(item)
 
     def run_player(self):
