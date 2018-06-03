@@ -49,7 +49,7 @@ class MainWindow(QtWidgets.QWidget):
         watch_action = QtWidgets.QAction(self)
         self.addAction(watch_action)
         watch_action.setShortcut('Return')
-        watch_action.triggered.connect(self.run_player)
+        watch_action.triggered.connect(self.activate_item)
         refresh_action = QtWidgets.QAction(self)
         self.addAction(refresh_action)
         refresh_action.setText('Refresh')
@@ -70,8 +70,8 @@ class MainWindow(QtWidgets.QWidget):
             'video-television', QtGui.QIcon(':/icons/video-television.svg')))
         about_action.triggered.connect(self.show_about)
         # signal/slot setup
-        self.ui.buttonGo.released.connect(self.run_player)
-        self.ui.listWidget.itemDoubleClicked.connect(self.run_player)
+        self.ui.buttonGo.released.connect(self.activate_item)
+        self.ui.listWidget.itemDoubleClicked.connect(self.activate_item)
         self.ui.listWidget.itemSelectionChanged.connect(self.update_guide)
         self.ui.buttonGuide.released.connect(self.show_hide_guide)
         # gui setup
@@ -180,9 +180,16 @@ class MainWindow(QtWidgets.QWidget):
                     item.id = entry[2]
                 self.ui.listWidget.addItem(item)
 
-    def run_player(self):
+    def activate_item(self):
         address = self.ui.listWidget.currentItem().address
         if not address:
+            row = self.ui.listWidget.currentRow() + 1
+            while self.ui.listWidget.item(row).address:
+                hidden = self.ui.listWidget.item(row).isHidden()
+                self.ui.listWidget.item(row).setHidden(not hidden)
+                row += 1
+                if self.ui.listWidget.item(row) is None:
+                    break
             return
         command = [self.player]
         if command[0].endswith('mpv'):
