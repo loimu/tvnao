@@ -35,13 +35,6 @@ class MainWindow(QtWidgets.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
         # actions setup
-        quit_action = QtWidgets.QAction(self)
-        self.addAction(quit_action)
-        quit_action.setText('Quit')
-        quit_action.setShortcut('Ctrl+Q')
-        quit_action.setIcon(QtGui.QIcon.fromTheme(
-            'application-exit', QtGui.QIcon(':/icons/application-exit.svg')))
-        quit_action.triggered.connect(self.close)
         show_hide_action = QtWidgets.QAction(self)
         self.addAction(show_hide_action)
         show_hide_action.setShortcut('Ctrl+G')
@@ -50,6 +43,12 @@ class MainWindow(QtWidgets.QWidget):
         self.addAction(watch_action)
         watch_action.setShortcut('Return')
         watch_action.triggered.connect(self.activate_item)
+        copy_action = QtWidgets.QAction(self)
+        self.addAction(copy_action)
+        copy_action.setText('Copy address')
+        copy_action.setShortcut('Ctrl+C')
+        copy_action.setIcon(QtGui.QIcon.fromTheme('edit-copy'))
+        copy_action.triggered.connect(self.copy_to_clipboard)
         refresh_action = QtWidgets.QAction(self)
         self.addAction(refresh_action)
         refresh_action.setText('Refresh')
@@ -69,6 +68,13 @@ class MainWindow(QtWidgets.QWidget):
         about_action.setIcon(QtGui.QIcon.fromTheme(
             'video-television', QtGui.QIcon(':/icons/video-television.svg')))
         about_action.triggered.connect(self.show_about)
+        quit_action = QtWidgets.QAction(self)
+        self.addAction(quit_action)
+        quit_action.setText('Quit')
+        quit_action.setShortcut('Ctrl+Q')
+        quit_action.setIcon(QtGui.QIcon.fromTheme(
+            'application-exit', QtGui.QIcon(':/icons/application-exit.svg')))
+        quit_action.triggered.connect(self.close)
         # signal/slot setup
         self.ui.buttonGo.released.connect(self.activate_item)
         self.ui.listWidget.itemDoubleClicked.connect(self.activate_item)
@@ -82,6 +88,8 @@ class MainWindow(QtWidgets.QWidget):
         menu.addAction(about_action)
         menu.addSeparator()
         menu.addAction(quit_action)
+        self.ui.listWidget.addAction(copy_action)
+        self.ui.listWidget.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
         self.ui.buttonMenu.setIcon(QtGui.QIcon.fromTheme(
             'video-television', QtGui.QIcon(':/icons/video-television.svg')))
         self.ui.buttonMenu.setMenu(menu)
@@ -278,6 +286,10 @@ class MainWindow(QtWidgets.QWidget):
             else:
                 return file_contents.replace('#EXTM3U', '', 1)
         return ''
+
+    def copy_to_clipboard(self):
+        QtWidgets.QApplication.clipboard().setText(
+            self.ui.listWidget.currentItem().address)
 
     def show_settings(self):
         settings_dialog = Settings()
