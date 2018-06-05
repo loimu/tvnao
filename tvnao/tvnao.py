@@ -157,7 +157,8 @@ class MainWindow(QtWidgets.QWidget):
                 title = re.match('.*group-title=\"(.+)\".*', line)
                 if title:
                     self.list.append((title.group(1), None, None))
-            elif line.startswith('udp://') or line.startswith('http://'):
+            elif line.startswith('udp://') or line.startswith('http://')\
+                    or line.startswith('file://'):
                 addr = line
                 self.list.append((name, addr, id))
 
