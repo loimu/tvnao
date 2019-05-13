@@ -19,7 +19,8 @@ class ScheduleHandler:
     jtv_file = 'jtv.zip'
     tz = timezone('Europe/Minsk')
 
-    def __init__(self, schedule_addr: str, offset: float = 0.0):
+    def __init__(self, schedule_addr: str = "http://iptv.isp.domain/jtv.zip",
+                 offset: float = 0.0):
         self.schedule_addr = schedule_addr
         self.offset = offset
         self.conn = sqlite3.connect(self.dbname)
@@ -164,8 +165,8 @@ class ScheduleHandler:
                 ins = " style='color:indigo;'" if currtime > r[1] else ""
                 response += format((ins, r[1], r[3]))
         else:
-            begin = date + '000000'
-            end = date + '235900'
+            begin = str(date) + '000000'
+            end = str(date) + '235900'
             select = (channel, begin, end, )
             for r in self.c.execute("SELECT * FROM program WHERE channel = ?"
                                     " AND stop > ? AND start < ? ;", select):

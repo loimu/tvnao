@@ -2,43 +2,27 @@
 
 # Form implementation generated from reading ui file 'settings_dialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.7
+# Created by: PyQt5 UI code generator 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(400, 412)
+        Dialog.resize(400, 343)
         self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBoxPlaylist = QtWidgets.QGroupBox(Dialog)
         self.groupBoxPlaylist.setObjectName("groupBoxPlaylist")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.groupBoxPlaylist)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.horizontalLayoutPlaylist = QtWidgets.QHBoxLayout()
-        self.horizontalLayoutPlaylist.setObjectName("horizontalLayoutPlaylist")
-        self.verticalLayout0 = QtWidgets.QVBoxLayout()
-        self.verticalLayout0.setObjectName("verticalLayout0")
-        self.label = QtWidgets.QLabel(self.groupBoxPlaylist)
-        self.label.setObjectName("label")
-        self.verticalLayout0.addWidget(self.label)
-        self.label_2 = QtWidgets.QLabel(self.groupBoxPlaylist)
-        self.label_2.setObjectName("label_2")
-        self.verticalLayout0.addWidget(self.label_2)
-        self.horizontalLayoutPlaylist.addLayout(self.verticalLayout0)
-        self.verticalLayout1 = QtWidgets.QVBoxLayout()
-        self.verticalLayout1.setObjectName("verticalLayout1")
-        self.playlistHost = QtWidgets.QLineEdit(self.groupBoxPlaylist)
-        self.playlistHost.setObjectName("playlistHost")
-        self.verticalLayout1.addWidget(self.playlistHost)
-        self.playlistURL = QtWidgets.QLineEdit(self.groupBoxPlaylist)
-        self.playlistURL.setObjectName("playlistURL")
-        self.verticalLayout1.addWidget(self.playlistURL)
-        self.horizontalLayoutPlaylist.addLayout(self.verticalLayout1)
-        self.verticalLayout_2.addLayout(self.horizontalLayoutPlaylist)
+        self.playlistAddr = QtWidgets.QLineEdit(self.groupBoxPlaylist)
+        self.playlistAddr.setClearButtonEnabled(True)
+        self.playlistAddr.setObjectName("playlistAddr")
+        self.verticalLayout_2.addWidget(self.playlistAddr)
         self.verticalLayout.addWidget(self.groupBoxPlaylist)
         self.groupBoxPlayer = QtWidgets.QGroupBox(Dialog)
         self.groupBoxPlayer.setObjectName("groupBoxPlayer")
@@ -81,27 +65,10 @@ class Ui_Dialog(object):
         self.groupBoxGuide.setObjectName("groupBoxGuide")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.groupBoxGuide)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
-        self.horizontalLayoutGuide = QtWidgets.QHBoxLayout()
-        self.horizontalLayoutGuide.setObjectName("horizontalLayoutGuide")
-        self.verticalLayout4 = QtWidgets.QVBoxLayout()
-        self.verticalLayout4.setObjectName("verticalLayout4")
-        self.label_5 = QtWidgets.QLabel(self.groupBoxGuide)
-        self.label_5.setObjectName("label_5")
-        self.verticalLayout4.addWidget(self.label_5)
-        self.label_7 = QtWidgets.QLabel(self.groupBoxGuide)
-        self.label_7.setObjectName("label_7")
-        self.verticalLayout4.addWidget(self.label_7)
-        self.horizontalLayoutGuide.addLayout(self.verticalLayout4)
-        self.verticalLayout5 = QtWidgets.QVBoxLayout()
-        self.verticalLayout5.setObjectName("verticalLayout5")
-        self.epgHost = QtWidgets.QLineEdit(self.groupBoxGuide)
-        self.epgHost.setObjectName("epgHost")
-        self.verticalLayout5.addWidget(self.epgHost)
-        self.epgURL = QtWidgets.QLineEdit(self.groupBoxGuide)
-        self.epgURL.setObjectName("epgURL")
-        self.verticalLayout5.addWidget(self.epgURL)
-        self.horizontalLayoutGuide.addLayout(self.verticalLayout5)
-        self.verticalLayout_4.addLayout(self.horizontalLayoutGuide)
+        self.guideAddr = QtWidgets.QLineEdit(self.groupBoxGuide)
+        self.guideAddr.setClearButtonEnabled(True)
+        self.guideAddr.setObjectName("guideAddr")
+        self.verticalLayout_4.addWidget(self.guideAddr)
         self.verticalLayout.addWidget(self.groupBoxGuide)
         self.horizontalLayoutBt = QtWidgets.QHBoxLayout()
         self.horizontalLayoutBt.setObjectName("horizontalLayoutBt")
@@ -123,15 +90,14 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "tvnao - settings"))
-        self.groupBoxPlaylist.setTitle(_translate("Dialog", "Playlist"))
-        self.label.setText(_translate("Dialog", "Host:"))
-        self.label_2.setText(_translate("Dialog", "URL:"))
+        self.groupBoxPlaylist.setTitle(_translate("Dialog", "Playlist Address"))
+        self.playlistAddr.setPlaceholderText(_translate("Dialog", ".m3u playlist address"))
         self.groupBoxPlayer.setTitle(_translate("Dialog", "Player"))
         self.label_3.setText(_translate("Dialog", "Path:"))
         self.label_4.setText(_translate("Dialog", "Options:"))
         self.playerSingle.setText(_translate("Dialog", "Keep single player window"))
-        self.groupBoxGuide.setTitle(_translate("Dialog", "Program Guide"))
-        self.label_5.setText(_translate("Dialog", "Host:"))
-        self.label_7.setText(_translate("Dialog", "URL:"))
+        self.groupBoxGuide.setTitle(_translate("Dialog", "Program Guide Address"))
+        self.guideAddr.setPlaceholderText(_translate("Dialog", "jtv.zip file address"))
         self.defaultsButton.setText(_translate("Dialog", "Defaults"))
+
 

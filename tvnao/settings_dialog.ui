@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>412</height>
+    <height>343</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,40 +17,18 @@
    <item>
     <widget class="QGroupBox" name="groupBoxPlaylist">
      <property name="title">
-      <string>Playlist</string>
+      <string>Playlist Address</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayoutPlaylist">
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout0">
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Host:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>URL:</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout1">
-          <item>
-           <widget class="QLineEdit" name="playlistHost"/>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="playlistURL"/>
-          </item>
-         </layout>
-        </item>
-       </layout>
+       <widget class="QLineEdit" name="playlistAddr">
+        <property name="placeholderText">
+         <string>.m3u playlist address</string>
+        </property>
+        <property name="clearButtonEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -121,40 +99,18 @@
    <item>
     <widget class="QGroupBox" name="groupBoxGuide">
      <property name="title">
-      <string>Program Guide</string>
+      <string>Program Guide Address</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayoutGuide">
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout4">
-          <item>
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>Host:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>URL:</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout5">
-          <item>
-           <widget class="QLineEdit" name="epgHost"/>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="epgURL"/>
-          </item>
-         </layout>
-        </item>
-       </layout>
+       <widget class="QLineEdit" name="guideAddr">
+        <property name="placeholderText">
+         <string>jtv.zip file address</string>
+        </property>
+        <property name="clearButtonEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

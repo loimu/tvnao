@@ -4,18 +4,18 @@
 
 import sys
 import codecs
+import requests
 import subprocess
-import http.client
-import urllib.parse
 import datetime
-import re
 import signal
+import re
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSlot
 
 from .tvnao_widget import Ui_Form
 from .settings import Settings
 from .tvnao_rc import *
+from .schedule_handler import ScheduleHandler
 
 
 class MainWindow(QtWidgets.QWidget):
@@ -94,40 +94,14 @@ class MainWindow(QtWidgets.QWidget):
             self.ui.listWidget, QtWidgets.QScroller.TouchGesture)
         Settings.first_run()
         self.load_settings()
+        self.sh = ScheduleHandler(self.guide_addr)
 
     def load_settings(self):
-        self.playlist_host = Settings.settings.value('playlist/host', type=str)
-        self.playlist_url = Settings.settings.value('playlist/url', type=str)
+        self.playlist_addr = Settings.settings.value('playlist/addr', type=str)
         self.player = Settings.settings.value('player/path', type=str)
         self.options = Settings.settings.value('player/options', type=str)
         self.keep_single = Settings.settings.value('player/single', type=bool)
-        host = Settings.settings.value('epg/host', type=str).split(':')
-        self.epg_host = host[0]
-        self.epg_port = 80
-        if len(host) > 1:
-            if host[1].isdigit():
-                self.epg_port = int(host[1])
-        self.epg_url = Settings.settings.value('epg/url', type=str)
-
-    def send_request(self, host, port=80, loc='/',
-                     method='GET', params=None, headers={}, warn=True):
-        conn = http.client.HTTPSConnection(host, timeout=3)\
-            if port == 443\
-            else http.client.HTTPConnection(host, port, timeout=3)
-        message = None
-        try:
-            conn.request(method, loc, params, headers)
-            response = conn.getresponse()
-            out = response.read().decode('utf-8')
-        except OSError:
-            out, message = 'Network error', 'Check your network connection'
-        except ValueError:
-            out, message = 'Unicode error', 'Wrong encoding of the remote file'
-        except:
-            out, message = 'Timeout', 'Server is busy or connection too slow'
-        if warn and message:
-            QtWidgets.QMessageBox.warning(self, out, message)
-        return out
+        self.guide_addr = Settings.settings.value('guide/addr', type=str)
 
     def refresh_all(self):
         self.update_list_widget()
@@ -135,13 +109,18 @@ class MainWindow(QtWidgets.QWidget):
             self.ui.listWidget.setCurrentRow(0)
 
     def refresh_list(self):
-        self.list = []
-        counter = 0
         print('getting remote playlist...')
-        request = self.send_request(host=self.playlist_host,
-                                    loc=self.playlist_url)
-        request += self.append_local_file()
-        for line in request.splitlines():
+        try:
+            response = requests.get(self.playlist_addr)
+        except requests.exceptions.ConnectionError as e:
+            print("Connection error: {}".format(e))
+            QtWidgets.QMessageBox.warning(self, "Network Error", str(e))
+            return
+        playlist = response.content.decode('utf-8')
+        playlist += self.append_local_file()
+        self.list = list()
+        counter = 0
+        for line in playlist.splitlines():
             if line.startswith('#EXTINF'):
                 counter += 1
                 name = "{}. {}".format(counter, line.split(',')[1])
@@ -175,6 +154,8 @@ class MainWindow(QtWidgets.QWidget):
 
     def activate_item(self):
         row = self.ui.listWidget.currentRow()
+        if not len(self.list) or row < 0:
+            return
         address = self.list[row][1]
         if not address:
             row += 1
@@ -240,18 +221,7 @@ class MainWindow(QtWidgets.QWidget):
                 date += 1
             all_day = self.ui.guideNextButton.isChecked() or\
                 self.ui.guideFullButton.isChecked()
-            schedule = 'toggle_all_day' if all_day else 'toggle_now_day'
-            params = urllib.parse.urlencode({'id': id, 'date': date,
-                                             'schedule': schedule, 'start': 0})
-            headers = {'Content-type': 'application/x-www-form-urlencoded;'
-                       'charset=UTF-8', 'Accept': 'text/html'}
-            data = self.send_request(
-                self.epg_host, self.epg_port, self.epg_url, method='POST',
-                params=params, headers=headers, warn=False)
-            format = re.sub(r'\<div.*?\</div\>|\<hr\>', '', data)\
-                .replace("class='before'", 'style="color:gray;"')\
-                .replace("class='in'", 'style="color:indigo;"')
-            text = re.sub(r'(\d\d:\d\d)', '<b>\\1</b>', format)
+            text = self.sh.get_schedule(date, id, all_day)
             self.ui.guideBrowser.setText(text)
             self.ui.guideBrowser.setToolTip(text)
 
@@ -294,8 +264,8 @@ class MainWindow(QtWidgets.QWidget):
 
 
 def main():
-    if sys.hexversion < 0x30400f0:
-        print('E: python version too old, 3.4 and higher is needed')
+    if sys.hexversion < 0x30500f0:
+        print('E: python version is too old, 3.5 or higher needed')
         sys.exit(1)
     if 'linux' in sys.platform:
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)
