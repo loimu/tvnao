@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2018 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2019 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
@@ -18,17 +18,10 @@ from .settings import Settings
 from .tvnao_rc import *
 
 
-class ListItem(QtWidgets.QListWidgetItem):
-    address = ''
-    id = ''
-
-    def __init__(self):
-        super(ListItem, self).__init__()
-
-
 class MainWindow(QtWidgets.QWidget):
     list = []
     process = None
+    search_string = ''
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -151,10 +144,10 @@ class MainWindow(QtWidgets.QWidget):
         for line in request.splitlines():
             if line.startswith('#EXTINF'):
                 counter += 1
-                name = '%s. %s' % (counter, line.split(',')[1])
-                match = re.match('.*tvg-id=(\d+).*', line)
+                name = "{}. {}".format(counter, line.split(',')[1])
+                match = re.match(r'.*tvg-id=(\w+).*', line)
                 id = match.group(1) if match else None
-                title = re.match('.*group-title=\"(.+)\".*', line)
+                title = re.match(r'.*group-title=\"(.+)\".*', line)
                 if title:
                     self.list.append((title.group(1), None, None))
             elif line.startswith('udp://') or line.startswith('http://')\
@@ -166,38 +159,32 @@ class MainWindow(QtWidgets.QWidget):
         self.refresh_list()
         self.ui.listWidget.clear()
         for entry in self.list:
-            item = ListItem()
-            item.setText(entry[0])
+            item = QtWidgets.QListWidgetItem(entry[0])
             if entry[1]:
-                item.address = entry[1]
                 item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
-            if entry[2]:
-                item.id = entry[2]
             self.ui.listWidget.addItem(item)
 
     @pyqtSlot(str, name='on_lineEditFilter_textEdited')
     def filter(self, string):
-        self.ui.listWidget.clear()
+        counter = 0
+        self.search_string = string
         for entry in self.list:
-            if string.lower() in entry[0].lower() or not entry[1]:
-                item = ListItem()
-                item.setText(entry[0])
-                if entry[1]:
-                    item.address = entry[1]
-                    item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
-                if entry[2]:
-                    item.id = entry[2]
-                self.ui.listWidget.addItem(item)
+            hidden = bool(entry[1]) and string.lower() not in entry[0].lower()
+            self.ui.listWidget.item(counter).setHidden(hidden)
+            counter += 1
 
     def activate_item(self):
-        address = self.ui.listWidget.currentItem().address
+        row = self.ui.listWidget.currentRow()
+        address = self.list[row][1]
         if not address:
-            row = self.ui.listWidget.currentRow() + 1
-            while self.ui.listWidget.item(row).address:
-                hidden = self.ui.listWidget.item(row).isHidden()
-                self.ui.listWidget.item(row).setHidden(not hidden)
+            row += 1
+            while self.list[row][1]:
+                item = self.ui.listWidget.item(row)
+                item.setHidden(not item.isHidden() or
+                               self.search_string.lower()
+                               not in item.text().lower())
                 row += 1
-                if self.ui.listWidget.item(row) is None:
+                if item is None:
                     break
             return
         command = [self.player]
@@ -207,7 +194,7 @@ class MainWindow(QtWidgets.QWidget):
         options = self.options.split()
         if options:
             command += options
-        command.append(self.ui.listWidget.currentItem().address)
+        command.append(self.list[row][1])
         if self.keep_single and self.process:
             try:
                 if 'win' in sys.platform:
@@ -244,7 +231,7 @@ class MainWindow(QtWidgets.QWidget):
         if self.ui.guideBrowser.isVisible():
             if self.ui.listWidget.count() < 1:
                 return
-            id = self.ui.listWidget.currentItem().id
+            id = self.list[self.ui.listWidget.currentRow()][2]
             if not id:
                 self.ui.guideBrowser.setText('<b>not available</b>')
                 return
@@ -261,10 +248,10 @@ class MainWindow(QtWidgets.QWidget):
             data = self.send_request(
                 self.epg_host, self.epg_port, self.epg_url, method='POST',
                 params=params, headers=headers, warn=False)
-            format = re.sub('\<div.*?\</div\>|\<hr\>', '', data)\
+            format = re.sub(r'\<div.*?\</div\>|\<hr\>', '', data)\
                 .replace("class='before'", 'style="color:gray;"')\
                 .replace("class='in'", 'style="color:indigo;"')
-            text = re.sub('(\d\d:\d\d)', '<b>\\1</b>', format)
+            text = re.sub(r'(\d\d:\d\d)', '<b>\\1</b>', format)
             self.ui.guideBrowser.setText(text)
             self.ui.guideBrowser.setToolTip(text)
 
@@ -290,7 +277,7 @@ class MainWindow(QtWidgets.QWidget):
 
     def copy_to_clipboard(self):
         QtWidgets.QApplication.clipboard().setText(
-            self.ui.listWidget.currentItem().address)
+            self.list[self.ui.listWidget.currentRow()][1])
 
     def show_settings(self):
         settings_dialog = Settings()
@@ -300,7 +287,7 @@ class MainWindow(QtWidgets.QWidget):
     def show_about(self):
         QtWidgets.QMessageBox.about(
             self, 'About tvnao',
-            '<p><b>tvnao</b> v0.8.0 &copy; 2016-2018 Blaze</p>'
+            '<p><b>tvnao</b> v0.8.99 &copy; 2016-2019 Blaze</p>'
             '<p>&lt;blaze@vivaldi.net&gt;</p>'
             '<p><a href="https://bitbucket.org/blaze/tvnao">'
             'https://bitbucket.org/blaze/tvnao</a></p>')
