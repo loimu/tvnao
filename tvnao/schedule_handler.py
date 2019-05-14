@@ -18,8 +18,7 @@ class ScheduleHandler:
     jtv_file = 'jtv.zip'
     tz = timezone('Europe/Minsk')
 
-    def __init__(self, schedule_addr: str = "http://iptv.isp.domain/jtv.zip",
-                 offset: float = 0.0):
+    def __init__(self, schedule_addr: str, offset: float = 0.0):
         self.schedule_addr = schedule_addr
         self.offset = offset
         self._set_prefix()
@@ -51,16 +50,17 @@ class ScheduleHandler:
         self.jtv_file = prefix + self.jtv_file
 
     def _download_file(self, link: str, filename: str) -> bool:
+        if not link:
+            return False
         print("downloading file", link)
         try:
             response = requests.head(link)
         except requests.exceptions.ConnectionError as e:
             print("Connection error:", e)
             return False
-        length = int(response.headers['Content-Length'])
-        modified = response.headers['Last-Modified']
-        if length < 100000:
+        if response.headers['Content-Type'] != 'application/zip':
             return False
+        modified = response.headers['Last-Modified']
         jtv_check_file = filename.rsplit('.', maxsplit=1)[0]
         if os.path.exists(jtv_check_file):
             with open(jtv_check_file, 'r') as file:
@@ -76,7 +76,7 @@ class ScheduleHandler:
             return False
         with open(filename, 'wb') as file:
             file.write(response.content)
-        if os.path.getsize(filename) < length:
+        if os.path.getsize(filename) < int(response.headers['Content-Length']):
             print("Wrong File Size")
             os.remove(jtv_check_file)
             return False
