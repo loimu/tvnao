@@ -59,7 +59,7 @@ class ScheduleHandler:
             return False
         length = int(response.headers['Content-Length'])
         modified = response.headers['Last-Modified']
-        if length < 100_000:
+        if length < 100000:
             return False
         jtv_check_file = filename.rsplit('.', maxsplit=1)[0]
         if os.path.exists(jtv_check_file):
