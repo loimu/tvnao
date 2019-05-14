@@ -22,6 +22,7 @@ class ScheduleHandler:
                  offset: float = 0.0):
         self.schedule_addr = schedule_addr
         self.offset = offset
+        self._set_prefix()
         self.conn = sqlite3.connect(self.dbname)
         self.c = self.conn.cursor()
         refill = False
@@ -37,8 +38,20 @@ class ScheduleHandler:
     def __del__(self):
         self.conn.close()
 
+    def _set_prefix(self):
+        prefix = ""
+        if 'win' in os.sys.platform:
+            prefix = os.path.expandvars("%LOCALAPPDATA%\\tvnao\\")
+            print(prefix)
+        if 'linux' in os.sys.platform:
+            prefix = os.path.expanduser(r"~/.cache/tvnao/")
+        if prefix and not os.path.exists(prefix):
+            os.makedirs(prefix)
+        self.dbname = prefix + self.dbname
+        self.jtv_file = prefix + self.jtv_file
+
     def _download_file(self, link: str, filename: str) -> bool:
-        print("downloading file", filename)
+        print("downloading file", link)
         try:
             response = requests.head(link)
         except requests.exceptions.ConnectionError as e:
@@ -48,7 +61,7 @@ class ScheduleHandler:
         modified = response.headers['Last-Modified']
         if length < 100_000:
             return False
-        jtv_check_file = filename.split('.')[0]
+        jtv_check_file = filename.rsplit('.', maxsplit=1)[0]
         if os.path.exists(jtv_check_file):
             with open(jtv_check_file, 'r') as file:
                 if file.read() == modified and os.path.exists(self.jtv_file):

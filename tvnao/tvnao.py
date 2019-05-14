@@ -109,7 +109,7 @@ class MainWindow(QtWidgets.QWidget):
             self.ui.listWidget.setCurrentRow(0)
 
     def refresh_list(self):
-        print("getting remote playlist...")
+        print("getting remote playlist", self.playlist_addr)
         try:
             response = requests.get(self.playlist_addr)
         except requests.exceptions.ConnectionError as e:
