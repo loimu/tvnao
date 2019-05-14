@@ -183,11 +183,12 @@ class ScheduleHandler:
             for r in self.c.execute("SELECT * FROM program WHERE channel = ?"
                                     " AND stop > ? AND start < ? ;", select):
                 if currtime > r[1] and currtime > r[2]:
-                    response += format((" style='color:gray;'", r[1], r[3]))
+                    response += format((" style='color:gray;'",
+                                        r[1], r[3][:65]))
                 elif currtime > r[1] and currtime < r[2]:
                     response += format((" style='color:indigo;'", r[1], r[3]))
                 else:
-                    response += format(("", r[1], r[3]))
+                    response += format(("", r[1], r[3][:65]))
         if len(response) < 50:
             response += "<tr><td>n/a</td></tr>"
         response += "</table>"
