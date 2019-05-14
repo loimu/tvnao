@@ -94,7 +94,6 @@ class MainWindow(QtWidgets.QWidget):
             self.ui.listWidget, QtWidgets.QScroller.TouchGesture)
         Settings.first_run()
         self.load_settings()
-        self.sh = ScheduleHandler(self.guide_addr)
 
     def load_settings(self):
         self.playlist_addr = Settings.settings.value('playlist/addr', type=str)
@@ -262,6 +261,9 @@ class MainWindow(QtWidgets.QWidget):
             "<p><a href=\"https://bitbucket.org/blaze/tvnao\">"
             "https://bitbucket.org/blaze/tvnao</a></p>")
 
+    def load_guide_archive(self):
+        self.sh = ScheduleHandler(self.guide_addr)
+
 
 def main():
     if sys.hexversion < 0x030500f0:
@@ -275,4 +277,5 @@ def main():
         'video-television', QtGui.QIcon(':/icons/video-television.svg')))
     tv_widget.show()
     tv_widget.update_list_widget()
+    tv_widget.load_guide_archive()
     sys.exit(app.exec_())
