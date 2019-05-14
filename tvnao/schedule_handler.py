@@ -2,7 +2,6 @@
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
-
 import os
 import requests
 import struct
@@ -35,12 +34,15 @@ class ScheduleHandler:
                 self._flush_database()
             self._add_to_database()
 
+    def __del__(self):
+        self.conn.close()
+
     def _download_file(self, link: str, filename: str) -> bool:
         print("downloading file", filename)
         try:
             response = requests.head(link)
         except requests.exceptions.ConnectionError as e:
-            print("Connection error: {}".format(e))
+            print("Connection error:", e)
             return False
         length = int(response.headers['Content-Length'])
         modified = response.headers['Last-Modified']
@@ -50,7 +52,7 @@ class ScheduleHandler:
         if os.path.exists(jtv_check_file):
             with open(jtv_check_file, 'r') as file:
                 if file.read() == modified and os.path.exists(self.jtv_file):
-                    print(filename + " is up to date")
+                    print(filename, "is up to date")
                     return False
         with open(jtv_check_file, 'w') as file:
             file.write(modified)
@@ -147,9 +149,6 @@ class ScheduleHandler:
                         i += 1
         archive.close()
         self.conn.commit()
-
-    def close(self) -> None:
-        self.conn.close()
 
     def get_schedule(self,
                      date: str, channel: str, full_day: bool = False) -> str:

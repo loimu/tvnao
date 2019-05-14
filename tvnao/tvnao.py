@@ -21,7 +21,7 @@ from .schedule_handler import ScheduleHandler
 class MainWindow(QtWidgets.QWidget):
     list = []
     process = None
-    search_string = ''
+    search_string = ""
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -109,11 +109,11 @@ class MainWindow(QtWidgets.QWidget):
             self.ui.listWidget.setCurrentRow(0)
 
     def refresh_list(self):
-        print('getting remote playlist...')
+        print("getting remote playlist...")
         try:
             response = requests.get(self.playlist_addr)
         except requests.exceptions.ConnectionError as e:
-            print("Connection error: {}".format(e))
+            print("Connection error:", e)
             QtWidgets.QMessageBox.warning(self, "Network Error", str(e))
             return
         playlist = response.content.decode('utf-8')
@@ -124,9 +124,9 @@ class MainWindow(QtWidgets.QWidget):
             if line.startswith('#EXTINF'):
                 counter += 1
                 name = "{}. {}".format(counter, line.split(',')[1])
-                match = re.match(r'.*tvg-id=(\w+).*', line)
+                match = re.match(r".*tvg-id=(\w+).*", line)
                 id = match.group(1) if match else None
-                title = re.match(r'.*group-title=\"(.+)\".*', line)
+                title = re.match(r".*group-title=\"(.+)\".*", line)
                 if title:
                     self.list.append((title.group(1), None, None))
             elif line.startswith('udp://') or line.startswith('http://')\
@@ -159,7 +159,7 @@ class MainWindow(QtWidgets.QWidget):
         address = self.list[row][1]
         if not address:
             row += 1
-            while self.list[row][1]:
+            while row < len(self.list) and self.list[row][1]:
                 item = self.ui.listWidget.item(row)
                 item.setHidden(not item.isHidden() or
                                self.search_string.lower()
@@ -192,7 +192,7 @@ class MainWindow(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(
                 self, "No such player", "Please check your settings")
             return
-        print('running process with pid: %s\n  %s' % (str(self.process.pid),
+        print("running process with pid: %s\n  %s" % (str(self.process.pid),
                                                       str(command)))
 
     def show_hide_guide(self):
@@ -214,7 +214,7 @@ class MainWindow(QtWidgets.QWidget):
                 return
             id = self.list[self.ui.listWidget.currentRow()][2]
             if not id:
-                self.ui.guideBrowser.setText('<b>not available</b>')
+                self.ui.guideBrowser.setText("<b>not available</b>")
                 return
             date = int(datetime.date.today().strftime("%Y%m%d"))
             if self.ui.guideNextButton.isChecked():
@@ -240,7 +240,7 @@ class MainWindow(QtWidgets.QWidget):
             with codecs.open(sys.argv[1], 'r', 'utf-8') as local_playlist:
                 file_contents = local_playlist.read()
             if '#EXTM3U' not in file_contents[:9]:
-                print('E: contents of additional playlist are not valid')
+                print("E: contents of additional playlist are not valid")
             else:
                 return file_contents.replace('#EXTM3U', '', 1)
         return ''
@@ -256,16 +256,16 @@ class MainWindow(QtWidgets.QWidget):
 
     def show_about(self):
         QtWidgets.QMessageBox.about(
-            self, 'About tvnao',
-            '<p><b>tvnao</b> v0.8.99 &copy; 2016-2019 Blaze</p>'
-            '<p>&lt;blaze@vivaldi.net&gt;</p>'
-            '<p><a href="https://bitbucket.org/blaze/tvnao">'
-            'https://bitbucket.org/blaze/tvnao</a></p>')
+            self, "About tvnao",
+            "<p><b>tvnao</b> v0.8.99 &copy; 2016-2019 Blaze</p>"
+            "<p>&lt;blaze@vivaldi.net&gt;</p>"
+            "<p><a href=\"https://bitbucket.org/blaze/tvnao\">"
+            "https://bitbucket.org/blaze/tvnao</a></p>")
 
 
 def main():
-    if sys.hexversion < 0x30500f0:
-        print('E: python version is too old, 3.5 or higher needed')
+    if sys.hexversion < 0x030500f0:
+        print("E: python version is too old, 3.5 or higher needed")
         sys.exit(1)
     if 'linux' in sys.platform:
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)
