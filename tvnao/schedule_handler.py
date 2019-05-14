@@ -90,8 +90,6 @@ class ScheduleHandler:
         self.conn.commit()
 
     def _parse_titles(self, data: bytes) -> List[str]:
-        if data[0:26] != b"JTV 3.x TV Program Data\n\n\n":
-            raise Exception("invalid JTV format")
         data = data[26:]
         titles = []
         while len(data) > 0:
@@ -145,6 +143,9 @@ class ScheduleHandler:
                 if channel_id.isdigit():
                     continue
                 titles = archive.read(filename)
+                if titles[0:26] != b"JTV 3.x TV Program Data\n\n\n":
+                    print("invalid JTV format")
+                    continue
                 channel_titles = self._parse_titles(titles)
                 schedules = archive.read(filename[0:-4] + ".ndx")
                 channel_schedules = self._parse_schedule(schedules)
@@ -166,30 +167,25 @@ class ScheduleHandler:
     def get_schedule(self,
                      date: str, channel: str, full_day: bool = False) -> str:
         currtime = int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
-        response = "<table>"
         format = lambda x: "<tr{0}><td><b>{1}:{2}</b></td>"\
                            "<td><span>{3}</span></td></tr>"\
             .format(x[0], str(x[1])[-6:-4], str(x[1])[-4:-2], x[2])
+        text = ""
         if not full_day:
-            select = (channel, currtime, )
+            select = (channel, currtime)
             for r in self.c.execute("SELECT * FROM program WHERE channel = ?"
                                     " AND stop > ? LIMIT 5 ;", select):
-                ins = " style='color:indigo;'" if currtime > r[1] else ""
-                response += format((ins, r[1], r[3]))
+                style = " style='color:indigo;'" if currtime > r[1] else ""
+                text += format((style, r[1], r[3]))
         else:
-            begin = str(date) + '000000'
-            end = str(date) + '235900'
-            select = (channel, begin, end, )
+            select = (channel, str(date)+'000000', str(date)+'235900')
             for r in self.c.execute("SELECT * FROM program WHERE channel = ?"
                                     " AND stop > ? AND start < ? ;", select):
                 if currtime > r[1] and currtime > r[2]:
-                    response += format((" style='color:gray;'",
-                                        r[1], r[3][:65]))
+                    text += format((" style='color:gray;'", r[1], r[3][:65]))
                 elif currtime > r[1] and currtime < r[2]:
-                    response += format((" style='color:indigo;'", r[1], r[3]))
+                    text += format((" style='color:indigo;'", r[1], r[3]))
                 else:
-                    response += format(("", r[1], r[3][:65]))
-        if len(response) < 50:
-            response += "<tr><td>n/a</td></tr>"
-        response += "</table>"
-        return response
+                    text += format(("", r[1], r[3][:65]))
+        return "<table>{}</table>".format(
+            text if text else "<tr><td>n/a</td></tr>")
