@@ -7,7 +7,6 @@ import requests
 import struct
 import datetime
 import sqlite3
-import codecs
 import zipfile
 from pytz import timezone
 from typing import List
@@ -135,8 +134,7 @@ class ScheduleHandler:
         for filename in archive.namelist():
             if filename.endswith(".pdt"):
                 try:
-                    unicode_name = codecs.decode(bytes(filename, 'cp437'),
-                                                 'cp866')
+                    unicode_name = bytes(filename, 'cp437').decode('cp866')
                 except ValueError:
                     unicode_name = bytes(filename, 'utf-8')
                 channel_id = unicode_name[0:-4]

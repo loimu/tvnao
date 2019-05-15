@@ -2,8 +2,7 @@
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
-import sys
-import codecs
+from os import sys, path
 import requests
 import subprocess
 import datetime
@@ -235,14 +234,12 @@ class MainWindow(QtWidgets.QWidget):
         self.update_guide()
 
     def append_local_file(self):
-        if len(sys.argv) > 1:
-            with codecs.open(sys.argv[1], 'r', 'utf-8') as local_playlist:
+        if len(sys.argv) > 1 and path.exists(sys.argv[1]):
+            with open(sys.argv[1], 'r') as local_playlist:
                 file_contents = local_playlist.read()
-            if '#EXTM3U' not in file_contents[:9]:
-                print("E: contents of additional playlist are not valid")
-            else:
-                return file_contents.replace('#EXTM3U', '', 1)
-        return ''
+                if '#EXTM3U' in file_contents:
+                    return file_contents.replace('#EXTM3U', '', 1)
+        return ""
 
     def copy_to_clipboard(self):
         QtWidgets.QApplication.clipboard().setText(
