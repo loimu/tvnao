@@ -180,10 +180,10 @@ class ScheduleHandler:
             for r in self.c.execute("SELECT * FROM program WHERE channel = ?"
                                     " AND stop > ? AND start < ? ;", select):
                 if currtime > r[1] and currtime > r[2]:
-                    text += format((" style='color:gray;'", r[1], r[3][:65]))
+                    text += format((" style='color:gray;'", r[1], r[3][:60]))
                 elif currtime > r[1] and currtime < r[2]:
                     text += format((" style='color:indigo;'", r[1], r[3]))
                 else:
-                    text += format(("", r[1], r[3][:65]))
+                    text += format(("", r[1], r[3][:60]))
         return "<table>{}</table>".format(
             text if text else "<tr><td>n/a</td></tr>")
