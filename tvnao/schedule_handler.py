@@ -26,8 +26,7 @@ class ScheduleHandler:
         refill = False
         if not os.path.getsize(self.dbname):
             self._create_database()
-            if os.path.exists(self.jtv_file):
-                refill = True
+            refill = os.path.exists(self.jtv_file)
         if self._download_file(self.schedule_addr, self.jtv_file) or refill:
             if not refill:
                 self._flush_database()
@@ -101,7 +100,7 @@ class ScheduleHandler:
 
     def _filetime_to_datetime(self, time: bytes) -> datetime.datetime:
         filetime = struct.unpack('<Q', time)[0]
-        timestamp = filetime/10 + self.offset * 3.6e+9
+        timestamp = filetime/10 + self.offset*3.6e9
         return datetime.datetime(1601, 1, 1)\
             + datetime.timedelta(microseconds=timestamp)
 
