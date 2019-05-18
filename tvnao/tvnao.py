@@ -3,7 +3,7 @@
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
 from os import sys, path
-import requests
+from urllib import request, error
 import subprocess
 import datetime
 import signal
@@ -109,12 +109,12 @@ class MainWindow(QtWidgets.QWidget):
     def refresh_list(self):
         print("getting remote playlist", self.playlist_addr)
         try:
-            response = requests.get(self.playlist_addr)
-        except requests.exceptions.ConnectionError as e:
+            response = request.urlopen(self.playlist_addr)
+        except error.URLError as e:
             print("Connection error:", e)
             QtWidgets.QMessageBox.warning(self, "Network Error", str(e))
             return
-        playlist = response.content.decode('utf-8')
+        playlist = response.read().decode('utf-8')
         playlist += self.append_local_file()
         self.list = list()
         counter = 0

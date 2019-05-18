@@ -3,11 +3,11 @@
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
 import os
-import requests
 import struct
 import datetime
 import sqlite3
 import zipfile
+from urllib import request, error
 from typing import List
 
 
@@ -53,13 +53,14 @@ class ScheduleHandler:
             return False
         print("downloading file", link)
         try:
-            response = requests.head(link)
-        except requests.exceptions.ConnectionError as e:
+            response = request.urlopen(link)
+        except error.URLError as e:
             print("Connection error:", e)
             return False
-        if response.headers['Content-Type'] != 'application/zip':
+        headers = dict(response.getheaders())
+        if headers['Content-Type'] != 'application/zip':
             return False
-        modified = response.headers['Last-Modified']
+        modified = headers['Last-Modified']
         jtv_check_file = filename.rsplit('.', maxsplit=1)[0]
         if os.path.exists(jtv_check_file):
             with open(jtv_check_file, 'r') as file:
@@ -68,14 +69,9 @@ class ScheduleHandler:
                     return False
         with open(jtv_check_file, 'w') as file:
             file.write(modified)
-        try:
-            response = requests.get(link)
-        except requests.exceptions.ConnectionError as e:
-            print("Connection Error:", e)
-            return False
         with open(filename, 'wb') as file:
-            file.write(response.content)
-        if os.path.getsize(filename) < int(response.headers['Content-Length']):
+            file.write(response.read())
+        if os.path.getsize(filename) < int(headers['Content-Length']):
             print("Wrong File Size")
             os.remove(jtv_check_file)
             return False
