@@ -8,18 +8,19 @@ import struct
 import datetime
 import sqlite3
 import zipfile
-from pytz import timezone
 from typing import List
 
 
 class ScheduleHandler:
     dbname = 'schedule.db'
     jtv_file = 'jtv.zip'
-    tz = timezone('Europe/Minsk')
 
-    def __init__(self, schedule_addr: str, offset: float = 0.0):
+    def __init__(self, schedule_addr: str,
+                 offset: float = 0.0,
+                 tz: datetime.tzinfo = None):
         self.schedule_addr = schedule_addr
         self.offset = offset
+        self.tz = tz
         self._set_prefix()
         self.conn = sqlite3.connect(self.dbname)
         self.c = self.conn.cursor()

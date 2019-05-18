@@ -5,9 +5,12 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs
 import argparse
+from pytz import timezone
+
 from schedule_handler import ScheduleHandler
 
 sh = None
+tz = timezone('Europe/Minsk')
 
 
 class customHandler(BaseHTTPRequestHandler):
@@ -43,7 +46,7 @@ def main():
     parser.add_argument('-u', '--url', required=True, help="jtv file source")
     args = parser.parse_args()
     global sh
-    sh = ScheduleHandler(args.url)
+    sh = ScheduleHandler(args.url, tz=tz)
     run(args.host, args.port)
 
 
