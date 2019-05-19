@@ -143,12 +143,11 @@ class MainWindow(QtWidgets.QWidget):
 
     @pyqtSlot(str, name='on_lineEditFilter_textEdited')
     def filter(self, string):
-        counter = 0
         self.search_string = string
-        for entry in self.list:
-            hidden = bool(entry[1]) and string.lower() not in entry[0].lower()
-            self.ui.listWidget.item(counter).setHidden(hidden)
-            counter += 1
+        for index, entry in enumerate(self.list):
+            hidden = bool(entry[1]) and string.lower()\
+                not in self.ui.listWidget.item(index).text().lower()
+            self.ui.listWidget.item(index).setHidden(hidden)
 
     def activate_item(self):
         row = self.ui.listWidget.currentRow()
