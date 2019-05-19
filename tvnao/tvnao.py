@@ -8,6 +8,7 @@ import subprocess
 import datetime
 import signal
 import re
+
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSlot
 
@@ -18,7 +19,6 @@ from .schedule_handler import ScheduleHandler
 
 
 class MainWindow(QtWidgets.QWidget):
-    list = []
     process = None
     search_string = ""
 
@@ -93,6 +93,7 @@ class MainWindow(QtWidgets.QWidget):
             self.ui.listWidget, QtWidgets.QScroller.TouchGesture)
         Settings.first_run()
         self.load_settings()
+        self.list = list()
 
     def load_settings(self):
         self.playlist_addr = Settings.settings.value('playlist/addr', type=str)
@@ -102,7 +103,7 @@ class MainWindow(QtWidgets.QWidget):
         self.guide_addr = Settings.settings.value('guide/addr', type=str)
 
     def refresh_all(self):
-        self.update_list_widget()
+        self.refresh_list()
         if self.ui.listWidget.count() > 0:
             self.ui.listWidget.setCurrentRow(0)
 
@@ -116,8 +117,9 @@ class MainWindow(QtWidgets.QWidget):
             return
         playlist = response.read().decode('utf-8')
         playlist += self.append_local_file()
-        self.list = list()
         counter = 0
+        self.list = list()
+        self.ui.listWidget.clear()
         for line in playlist.splitlines():
             if line.startswith('#EXTINF'):
                 counter += 1
@@ -127,19 +129,14 @@ class MainWindow(QtWidgets.QWidget):
                 title = re.match(r".*group-title=\"(.+)\".*", line)
                 if title:
                     self.list.append((title.group(1), None, None))
+                    item = QtWidgets.QListWidgetItem(title.group(1))
+                    self.ui.listWidget.addItem(item)
             elif line.startswith('udp://') or line.startswith('http://')\
                     or line.startswith('file://'):
-                addr = line
-                self.list.append((name, addr, id))
-
-    def update_list_widget(self):
-        self.refresh_list()
-        self.ui.listWidget.clear()
-        for entry in self.list:
-            item = QtWidgets.QListWidgetItem(entry[0])
-            if entry[1]:
+                self.list.append((name, line, id))
+                item = QtWidgets.QListWidgetItem(name)
                 item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
-            self.ui.listWidget.addItem(item)
+                self.ui.listWidget.addItem(item)
 
     @pyqtSlot(str, name='on_lineEditFilter_textEdited')
     def filter(self, string):
@@ -272,6 +269,6 @@ def main():
     tv_widget.setWindowIcon(QtGui.QIcon.fromTheme(
         'video-television', QtGui.QIcon(":/icons/video-television.svg")))
     tv_widget.show()
-    tv_widget.update_list_widget()
+    tv_widget.refresh_list()
     tv_widget.load_guide_archive()
     sys.exit(app.exec_())
