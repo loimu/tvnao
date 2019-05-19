@@ -4,7 +4,7 @@
 
 from os import sys, path
 from urllib import request, error
-import subprocess
+from subprocess import Popen, DEVNULL
 import datetime
 import signal
 import re
@@ -150,8 +150,7 @@ class MainWindow(QtWidgets.QWidget):
         row = self.ui.listWidget.currentRow()
         if not len(self.list) or row < 0:
             return
-        address = self.list[row][1]
-        if not address:
+        if not self.list[row][1]:
             row += 1
             while row < len(self.list) and self.list[row][1]:
                 item = self.ui.listWidget.item(row)
@@ -163,12 +162,10 @@ class MainWindow(QtWidgets.QWidget):
                     break
             return
         command = [self.player]
-        if command[0].endswith('mpv'):
+        if self.player.endswith('mpv'):
             command.append('--force-media-title=' +
                            self.ui.listWidget.currentItem().text())
-        options = self.options.split()
-        if options:
-            command += options
+        command += self.options.split()
         command.append(self.list[row][1])
         if self.keep_single and self.process:
             try:
@@ -178,16 +175,14 @@ class MainWindow(QtWidgets.QWidget):
                     self.process.send_signal(2)
             except ProcessLookupError:
                 pass
-        try:
-            self.process = subprocess.Popen(command, stdin=subprocess.DEVNULL,
-                                            stdout=subprocess.DEVNULL,
-                                            stderr=subprocess.DEVNULL)
-        except FileNotFoundError:
+        if not path.isfile(self.player):
             QtWidgets.QMessageBox.warning(
                 self, "No such player", "Please check your settings")
             return
-        print("running process with pid: %s\n  %s" % (str(self.process.pid),
-                                                      str(command)))
+        self.process = Popen(
+            command, stdin=DEVNULL, stdout=DEVNULL, stderr=DEVNULL)
+        print("running process with pid:",
+              str(self.process.pid), "\n  ", str(command))
 
     def show_hide_guide(self):
         if self.ui.guideBrowser.isHidden():
