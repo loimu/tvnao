@@ -47,7 +47,7 @@ class MainWindow(QtWidgets.QWidget):
         refresh_action.setShortcut('Ctrl+R')
         refresh_action.setIcon(QtGui.QIcon.fromTheme(
             'view-refresh', QtGui.QIcon(":/icons/view-refresh.svg")))
-        refresh_action.triggered.connect(self.refresh_all)
+        refresh_action.triggered.connect(self.refresh_forced)
         settings_action = QtWidgets.QAction(self)
         self.addAction(settings_action)
         settings_action.setText('Settings')
@@ -102,7 +102,9 @@ class MainWindow(QtWidgets.QWidget):
         self.keep_single = Settings.settings.value('player/single', type=bool)
         self.guide_addr = Settings.settings.value('guide/addr', type=str)
 
-    def refresh_all(self):
+    def refresh_forced(self):
+        self.ui.listWidget.clear()
+        self.list = list()
         self.refresh_list()
         if self.ui.listWidget.count() > 0:
             self.ui.listWidget.setCurrentRow(0)
@@ -118,8 +120,6 @@ class MainWindow(QtWidgets.QWidget):
         playlist = response.read().decode('utf-8')
         playlist += self.append_local_file()
         counter = 0
-        self.list = list()
-        self.ui.listWidget.clear()
         for line in playlist.splitlines():
             if line.startswith('#EXTINF'):
                 counter += 1
