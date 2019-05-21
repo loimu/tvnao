@@ -21,6 +21,7 @@ from .schedule_handler import ScheduleHandler
 class MainWindow(QtWidgets.QWidget):
     process = None
     search_string = ""
+    folded = False
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -35,6 +36,10 @@ class MainWindow(QtWidgets.QWidget):
         self.addAction(watch_action)
         watch_action.setShortcut('Return')
         watch_action.triggered.connect(self.activate_item)
+        fold_action = QtWidgets.QAction(self)
+        self.addAction(fold_action)
+        fold_action.setShortcut('Ctrl+F')
+        fold_action.triggered.connect(self.fold_everything)
         copy_action = QtWidgets.QAction('Copy address', self)
         self.addAction(copy_action)
         copy_action.setShortcut('Ctrl+C')
@@ -52,10 +57,6 @@ class MainWindow(QtWidgets.QWidget):
         settings_action.setIcon(QtGui.QIcon.fromTheme(
             'configure', QtGui.QIcon(":/icons/configure.svg")))
         settings_action.triggered.connect(self.show_settings)
-        fold_action = QtWidgets.QAction(self)
-        self.addAction(fold_action)
-        fold_action.setShortcut('Ctrl+F')
-        fold_action.triggered.connect(self.fold_everything)
         about_action = QtWidgets.QAction('About', self)
         about_action.setIcon(QtGui.QIcon.fromTheme(
             'video-television', QtGui.QIcon(":/icons/video-television.svg")))
@@ -139,6 +140,7 @@ class MainWindow(QtWidgets.QWidget):
 
     @pyqtSlot(str, name='on_lineEditFilter_textEdited')
     def filter(self, string):
+        self.folded = False
         self.search_string = string
         for index, entry in enumerate(self.list):
             hidden = bool(entry[1]) and string.lower()\
@@ -153,8 +155,8 @@ class MainWindow(QtWidgets.QWidget):
             row += 1
             while row < len(self.list) and self.list[row][1]:
                 item = self.ui.listWidget.item(row)
-                item.setHidden(not item.isHidden() or
-                               self.search_string.lower()
+                item.setHidden(not item.isHidden()
+                               or self.search_string.lower()
                                not in item.text().lower())
                 row += 1
                 if item is None:
@@ -242,9 +244,10 @@ class MainWindow(QtWidgets.QWidget):
         for row, entry in enumerate(self.list):
             item = self.ui.listWidget.item(row)
             hidden = bool(entry[1]) and (
-                not item.isHidden()
+                not self.folded
                 or self.search_string.lower() not in item.text().lower())
             self.ui.listWidget.item(row).setHidden(hidden)
+        self.folded = not self.folded
 
     def show_settings(self):
         settings_dialog = Settings()
