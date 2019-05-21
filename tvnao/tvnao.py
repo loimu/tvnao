@@ -173,7 +173,7 @@ class MainWindow(QtWidgets.QWidget):
                     break
             return
         command = [self.player]
-        if self.player.endswith('mpv'):
+        if self.player.count('mpv'):
             command.append('--force-media-title=' +
                            self.ui.listWidget.currentItem().text())
         command += self.options.split()
@@ -186,7 +186,8 @@ class MainWindow(QtWidgets.QWidget):
                     self.process.send_signal(2)
             except ProcessLookupError:
                 pass
-        if not path.isfile(self.player):
+        if not (path.isfile(self.player)
+                or path.isfile(self.player + '.exe')):
             QtWidgets.QMessageBox.warning(
                 self, "No such player", "Please check your settings")
             return
