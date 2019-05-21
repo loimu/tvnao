@@ -40,6 +40,16 @@ class MainWindow(QtWidgets.QWidget):
         self.addAction(fold_action)
         fold_action.setShortcut('Ctrl+F')
         fold_action.triggered.connect(self.fold_everything)
+        search_focus_action = QtWidgets.QAction(self)
+        self.addAction(search_focus_action)
+        search_focus_action.setShortcut('Ctrl+S')
+        search_focus_action.triggered.connect(
+            lambda: self.ui.lineEditFilter.setFocus())
+        clear_search_action = QtWidgets.QAction(self)
+        self.addAction(clear_search_action)
+        clear_search_action.setShortcut('Esc')
+        clear_search_action.triggered.connect(
+            lambda: self.ui.lineEditFilter.clear())
         copy_action = QtWidgets.QAction('Copy address', self)
         self.addAction(copy_action)
         copy_action.setShortcut('Ctrl+C')
@@ -138,7 +148,7 @@ class MainWindow(QtWidgets.QWidget):
                 item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
                 self.ui.listWidget.addItem(item)
 
-    @pyqtSlot(str, name='on_lineEditFilter_textEdited')
+    @pyqtSlot(str, name='on_lineEditFilter_textChanged')
     def filter(self, string):
         self.folded = False
         self.search_string = string
