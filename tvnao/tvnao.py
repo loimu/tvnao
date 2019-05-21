@@ -55,6 +55,10 @@ class MainWindow(QtWidgets.QWidget):
         settings_action.setIcon(QtGui.QIcon.fromTheme(
             'configure', QtGui.QIcon(":/icons/configure.svg")))
         settings_action.triggered.connect(self.show_settings)
+        fold_action = QtWidgets.QAction(self)
+        self.addAction(fold_action)
+        fold_action.setShortcut('Ctrl+F')
+        fold_action.triggered.connect(self.fold_everything)
         about_action = QtWidgets.QAction(self)
         about_action.setText('About')
         about_action.setIcon(QtGui.QIcon.fromTheme(
@@ -236,6 +240,17 @@ class MainWindow(QtWidgets.QWidget):
         QtWidgets.QApplication.clipboard().setText(
             self.list[self.ui.listWidget.currentRow()][1])
 
+    def load_guide_archive(self):
+        self.sh = ScheduleHandler(self.guide_addr)
+
+    def fold_everything(self):
+        for row, entry in enumerate(self.list):
+            item = self.ui.listWidget.item(row)
+            hidden = bool(entry[1]) and (
+                not item.isHidden()
+                or self.search_string.lower() not in item.text().lower())
+            self.ui.listWidget.item(row).setHidden(hidden)
+
     def show_settings(self):
         settings_dialog = Settings()
         settings_dialog.exec_()
@@ -248,9 +263,6 @@ class MainWindow(QtWidgets.QWidget):
             "<p>&lt;blaze@vivaldi.net&gt;</p>"
             "<p><a href=\"https://bitbucket.org/blaze/tvnao\">"
             "https://bitbucket.org/blaze/tvnao</a></p>")
-
-    def load_guide_archive(self):
-        self.sh = ScheduleHandler(self.guide_addr)
 
 
 def main():
