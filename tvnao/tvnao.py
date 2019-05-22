@@ -134,8 +134,8 @@ class MainWindow(QtWidgets.QWidget):
             if line.startswith('#EXTINF'):
                 counter += 1
                 name = "{}. {}".format(counter, line.split(',')[1])
-                match = re.match(r".*tvg-id=(\w+).*", line)
-                id = match.group(1) if match else None
+                match = re.match(r".*tvg-(id|name)=(.*?)(\s|,).*", line)
+                id = match.group(2) if match else None
                 title = re.match(r".*group-title=\"(.+?)\".*", line)
                 if title:
                     self.list.append((title.group(1), None, None))
@@ -215,7 +215,6 @@ class MainWindow(QtWidgets.QWidget):
             if self.ui.listWidget.count() < 1:
                 return
             id = self.list[self.ui.listWidget.currentRow()][2]
-            print(id)
             if not id:
                 self.ui.guideBrowser.setText("<b>not available</b>")
                 return
