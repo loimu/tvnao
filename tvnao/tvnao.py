@@ -162,6 +162,7 @@ class MainWindow(QtWidgets.QWidget):
         if not len(self.list) or row < 0:
             return
         if not self.list[row][1]:
+            self.folded = False
             row += 1
             while row < len(self.list) and self.list[row][1]:
                 item = self.ui.listWidget.item(row)
