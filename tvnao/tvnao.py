@@ -113,6 +113,7 @@ class MainWindow(QtWidgets.QWidget):
         self.guide_addr = Settings.settings.value('guide/addr', type=str)
 
     def refresh_forced(self):
+        self.folded = False
         self.ui.listWidget.clear()
         self.list = list()
         self.refresh_list()
