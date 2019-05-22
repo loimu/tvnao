@@ -136,7 +136,7 @@ class MainWindow(QtWidgets.QWidget):
                 name = "{}. {}".format(counter, line.split(',')[1])
                 match = re.match(r".*tvg-id=(\w+).*", line)
                 id = match.group(1) if match else None
-                title = re.match(r".*group-title=\"(.+)\".*", line)
+                title = re.match(r".*group-title=\"(.+?)\".*", line)
                 if title:
                     self.list.append((title.group(1), None, None))
                     item = QtWidgets.QListWidgetItem(title.group(1))
@@ -215,6 +215,7 @@ class MainWindow(QtWidgets.QWidget):
             if self.ui.listWidget.count() < 1:
                 return
             id = self.list[self.ui.listWidget.currentRow()][2]
+            print(id)
             if not id:
                 self.ui.guideBrowser.setText("<b>not available</b>")
                 return
