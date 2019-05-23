@@ -263,8 +263,8 @@ class MainWindow(QtWidgets.QWidget):
         self.folded = not self.folded
 
     def show_settings(self):
-        settings_dialog = Settings()
-        settings_dialog.exec_()
+        settings_dialog = Settings(self)
+        settings_dialog.show()
         settings_dialog.destroyed.connect(self.load_settings)
 
     def show_about(self):

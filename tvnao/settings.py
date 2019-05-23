@@ -40,8 +40,8 @@ class Settings(QtWidgets.QDialog):
             .split('\n')[0]
         return player if player else 'mpv'
 
-    def __init__(self):
-        super(Settings, self).__init__()
+    def __init__(self, parent):
+        super(Settings, self).__init__(parent)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         self.ui.playlistAddr.setText(
