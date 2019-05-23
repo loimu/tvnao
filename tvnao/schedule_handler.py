@@ -36,7 +36,7 @@ class ScheduleHandler:
     def __del__(self):
         self.conn.close()
 
-    def _set_prefix(self):
+    def _set_prefix(self) -> None:
         prefix = ""
         if 'win' in os.sys.platform:
             prefix = os.path.expandvars("%LOCALAPPDATA%\\tvnao\\")
