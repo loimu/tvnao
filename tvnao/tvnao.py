@@ -291,6 +291,6 @@ def main():
     tv_widget.setWindowIcon(QtGui.QIcon.fromTheme(
         'video-television', QtGui.QIcon(":/icons/video-television.svg")))
     tv_widget.show()
-    Thread(target=tv_widget.refresh_list).start()
+    tv_widget.refresh_list()
     Thread(target=tv_widget.load_guide_archive).start()
     sys.exit(app.exec_())
