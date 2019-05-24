@@ -9,6 +9,7 @@ import sqlite3
 import zipfile
 from urllib import request, error
 from typing import List
+import encodings.idna
 
 
 class ScheduleHandler:
@@ -22,7 +23,7 @@ class ScheduleHandler:
         self.offset = offset
         self.tz = tz
         self._set_prefix()
-        self.conn = sqlite3.connect(self.dbname)
+        self.conn = sqlite3.connect(self.dbname, check_same_thread=False)
         self.c = self.conn.cursor()
         refill = False
         if not os.path.getsize(self.dbname):

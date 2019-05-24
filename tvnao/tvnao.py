@@ -8,6 +8,7 @@ from subprocess import Popen, DEVNULL
 import datetime
 import signal
 import re
+from threading import Thread
 
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import pyqtSlot
@@ -19,6 +20,7 @@ from .schedule_handler import ScheduleHandler
 
 
 class MainWindow(QtWidgets.QWidget):
+    sh = None
     process = None
     search_string = ""
     folded = False
@@ -101,6 +103,7 @@ class MainWindow(QtWidgets.QWidget):
         self.set_guide_visibility(False)
         QtWidgets.QScroller.grabGesture(
             self.ui.listWidget, QtWidgets.QScroller.TouchGesture)
+        # init
         Settings.first_run()
         self.load_settings()
         self.list = list()
@@ -222,9 +225,10 @@ class MainWindow(QtWidgets.QWidget):
             date = int(datetime.date.today().strftime("%Y%m%d"))
             if self.ui.guideNextButton.isChecked():
                 date += 1
-            all_day = self.ui.guideNextButton.isChecked() or\
-                self.ui.guideFullButton.isChecked()
-            text = self.sh.get_schedule(date, id, all_day)
+            all_day = self.ui.guideNextButton.isChecked()\
+                or self.ui.guideFullButton.isChecked()
+            text = self.sh.get_schedule(date, id, all_day)\
+                if self.sh else "loading…"
             self.ui.guideBrowser.setText(text)
             self.ui.guideBrowser.setToolTip(text)
 
@@ -287,6 +291,6 @@ def main():
     tv_widget.setWindowIcon(QtGui.QIcon.fromTheme(
         'video-television', QtGui.QIcon(":/icons/video-television.svg")))
     tv_widget.show()
-    tv_widget.refresh_list()
-    tv_widget.load_guide_archive()
+    Thread(target=tv_widget.refresh_list).start()
+    Thread(target=tv_widget.load_guide_archive).start()
     sys.exit(app.exec_())
