@@ -128,8 +128,7 @@ class MainWindow(QtWidgets.QWidget):
         try:
             response = request.urlopen(self.playlist_addr)
         except error.URLError as e:
-            print("Connection error:", e)
-            QtWidgets.QMessageBox.warning(self, "Network Error", str(e))
+            QtWidgets.QMessageBox.warning(self, "Network Error", str(e.reason))
             return
         playlist = response.read().decode('utf-8')
         playlist += self.append_local_file()
