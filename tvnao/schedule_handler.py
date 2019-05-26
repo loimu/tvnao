@@ -56,7 +56,7 @@ class ScheduleHandler:
         try:
             response = request.urlopen(link)
         except error.URLError as e:
-            print("Connection error:", e)
+            print("Connection error:", str(e.reason))
             return False
         headers = dict(response.getheaders())
         if headers['Content-Type'] != 'application/zip':
