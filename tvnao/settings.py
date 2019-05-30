@@ -75,6 +75,7 @@ class Settings(QtWidgets.QDialog):
         self.settings.setValue('player/single',
                                self.ui.playerSingle.isChecked())
         self.settings.setValue('guide/addr', self.ui.guideAddr.text())
+        self.destroyed.emit()
 
     @pyqtSlot()
     def on_defaultsButton_released(self):
