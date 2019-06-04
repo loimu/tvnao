@@ -8,15 +8,33 @@ from subprocess import Popen, DEVNULL
 import datetime
 import signal
 import re
-from threading import Thread
 
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QThreadPool
 
 from .tvnao_widget import Ui_Form
 from .settings import Settings
 from .tvnao_rc import *
 from .schedule_handler import ScheduleHandler
+
+
+class WorkerSignals(QtCore.QObject):
+    signal_finished = pyqtSignal()
+
+
+class Worker(QtCore.QRunnable):
+
+    def __init__(self, fn, *args, **kwargs):
+        super(Worker, self).__init__()
+        self.fn = fn
+        self.args = args
+        self.kwargs = kwargs
+        self.signals = WorkerSignals()
+
+    @pyqtSlot()
+    def run(self):
+        result = self.fn(*self.args, **self.kwargs)
+        self.signals.signal_finished.emit()
 
 
 class MainWindow(QtWidgets.QWidget):
@@ -291,5 +309,9 @@ def main():
         'video-television', QtGui.QIcon(":/icons/video-television.svg")))
     tv_widget.show()
     tv_widget.refresh_list()
-    Thread(target=tv_widget.load_guide_archive).start()
+    threadpool = QThreadPool()
+    #worker = Worker(tv_widget.refresh_list)
+    #threadpool.start(worker)
+    worker = Worker(tv_widget.load_guide_archive)
+    threadpool.start(worker)
     sys.exit(app.exec_())
