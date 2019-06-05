@@ -128,13 +128,11 @@ class MainWindow(QtWidgets.QWidget):
         Settings.first_run()
         self.load_settings()
         self.list = list()
-        self.threadpool = QThreadPool()
-        list_worker = Worker(self.refresh_list)
-        list_worker.signals.signal_error.connect(self.show_error)
-        self.threadpool.start(list_worker)
+        self.thread_pool = QThreadPool()
+        self.refresh_list_wrapper()
         guide_worker = Worker(self.load_guide_archive)
         guide_worker.signals.signal_finished.connect(self.update_guide)
-        self.threadpool.start(guide_worker)
+        self.thread_pool.start(guide_worker)
 
     def load_settings(self):
         self.playlist_addr = Settings.settings.value('playlist/addr', type=str)
@@ -147,9 +145,12 @@ class MainWindow(QtWidgets.QWidget):
         self.folded = False
         self.ui.listWidget.clear()
         self.list = list()
+        self.refresh_list_wrapper()
+
+    def refresh_list_wrapper(self):
         list_worker = Worker(self.refresh_list)
         list_worker.signals.signal_error.connect(self.show_error)
-        self.threadpool.start(list_worker)
+        self.thread_pool.start(list_worker)
 
     def refresh_list(self):
         print("getting remote playlist", self.playlist_addr)
