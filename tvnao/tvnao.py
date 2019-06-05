@@ -20,6 +20,7 @@ from .schedule_handler import ScheduleHandler
 
 class WorkerSignals(QtCore.QObject):
     signal_finished = pyqtSignal()
+    signal_error = pyqtSignal(str)
 
 
 class Worker(QtCore.QRunnable):
@@ -33,7 +34,9 @@ class Worker(QtCore.QRunnable):
 
     @pyqtSlot()
     def run(self):
-        result = self.fn(*self.args, **self.kwargs)
+        error_message = self.fn(*self.args, **self.kwargs)
+        if error_message:
+            self.signals.signal_error.emit(error_message)
         self.signals.signal_finished.emit()
 
 
@@ -125,6 +128,13 @@ class MainWindow(QtWidgets.QWidget):
         Settings.first_run()
         self.load_settings()
         self.list = list()
+        self.threadpool = QThreadPool()
+        list_worker = Worker(self.refresh_list)
+        list_worker.signals.signal_error.connect(self.show_error)
+        self.threadpool.start(list_worker)
+        guide_worker = Worker(self.load_guide_archive)
+        guide_worker.signals.signal_finished.connect(self.update_guide)
+        self.threadpool.start(guide_worker)
 
     def load_settings(self):
         self.playlist_addr = Settings.settings.value('playlist/addr', type=str)
@@ -137,17 +147,16 @@ class MainWindow(QtWidgets.QWidget):
         self.folded = False
         self.ui.listWidget.clear()
         self.list = list()
-        self.refresh_list()
-        if self.ui.listWidget.count() > 0:
-            self.ui.listWidget.setCurrentRow(0)
+        list_worker = Worker(self.refresh_list)
+        list_worker.signals.signal_error.connect(self.show_error)
+        self.threadpool.start(list_worker)
 
     def refresh_list(self):
         print("getting remote playlist", self.playlist_addr)
         try:
             response = request.urlopen(self.playlist_addr)
         except error.URLError as e:
-            QtWidgets.QMessageBox.warning(self, "Network Error", str(e.reason))
-            return
+            return str(e.reason)
         playlist = response.read().decode('utf-8')
         playlist += self.append_local_file()
         counter = 0
@@ -168,6 +177,7 @@ class MainWindow(QtWidgets.QWidget):
                 item = QtWidgets.QListWidgetItem(name)
                 item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
                 self.ui.listWidget.addItem(item)
+        return ""
 
     @pyqtSlot(str, name='on_lineEditFilter_textChanged')
     def filter(self, string):
@@ -283,6 +293,9 @@ class MainWindow(QtWidgets.QWidget):
             self.ui.listWidget.item(row).setHidden(hidden)
         self.folded = not self.folded
 
+    def show_error(self, text):
+        QtWidgets.QMessageBox.warning(self, "Network Error", text)
+
     def show_settings(self):
         settings_dialog = Settings(self)
         settings_dialog.show()
@@ -308,10 +321,4 @@ def main():
     tv_widget.setWindowIcon(QtGui.QIcon.fromTheme(
         'video-television', QtGui.QIcon(":/icons/video-television.svg")))
     tv_widget.show()
-    tv_widget.refresh_list()
-    threadpool = QThreadPool()
-    #worker = Worker(tv_widget.refresh_list)
-    #threadpool.start(worker)
-    worker = Worker(tv_widget.load_guide_archive)
-    threadpool.start(worker)
     sys.exit(app.exec_())
