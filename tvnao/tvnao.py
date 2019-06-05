@@ -149,7 +149,8 @@ class MainWindow(QtWidgets.QWidget):
 
     def refresh_list_wrapper(self):
         list_worker = Worker(self.refresh_list)
-        list_worker.signals.signal_error.connect(self.show_error)
+        list_worker.signals.signal_error.connect(
+            lambda x: QtWidgets.QMessageBox.warning(self, "Network Error", x))
         self.thread_pool.start(list_worker)
 
     def refresh_list(self):
@@ -293,9 +294,6 @@ class MainWindow(QtWidgets.QWidget):
                 or self.search_string.lower() not in item.text().lower())
             self.ui.listWidget.item(row).setHidden(hidden)
         self.folded = not self.folded
-
-    def show_error(self, text):
-        QtWidgets.QMessageBox.warning(self, "Network Error", text)
 
     def show_settings(self):
         settings_dialog = Settings(self)
