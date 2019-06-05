@@ -280,8 +280,9 @@ class MainWindow(QtWidgets.QWidget):
         return ""
 
     def copy_to_clipboard(self):
-        QtWidgets.QApplication.clipboard().setText(
-            self.list[self.ui.listWidget.currentRow()][1])
+        if self.list:
+            QtWidgets.QApplication.clipboard().setText(
+                self.list[self.ui.listWidget.currentRow()][1])
 
     def load_guide_archive(self):
         self.sh = ScheduleHandler(self.guide_addr)
