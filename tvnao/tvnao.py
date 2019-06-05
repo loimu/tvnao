@@ -150,7 +150,7 @@ class MainWindow(QtWidgets.QWidget):
     def refresh_list_wrapper(self):
         list_worker = Worker(self.refresh_list)
         list_worker.signals.signal_error.connect(
-            lambda x: QtWidgets.QMessageBox.warning(self, "Network Error", x))
+            lambda x: QtWidgets.QMessageBox.warning(None, "Network Error", x))
         self.thread_pool.start(list_worker)
 
     def refresh_list(self):
