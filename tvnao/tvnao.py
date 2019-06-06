@@ -99,7 +99,7 @@ class MainWindow(QtWidgets.QWidget):
         quit_action.setShortcut('Ctrl+Q')
         quit_action.setIcon(QtGui.QIcon.fromTheme(
             'application-exit', QtGui.QIcon(":/icons/application-exit.svg")))
-        quit_action.triggered.connect(self.close)
+        quit_action.triggered.connect(self.quit)
         # signal/slot setup
         self.ui.buttonGo.released.connect(self.activate_item)
         self.ui.listWidget.itemDoubleClicked.connect(self.activate_item)
@@ -309,6 +309,10 @@ class MainWindow(QtWidgets.QWidget):
             "<p>&lt;blaze@vivaldi.net&gt;</p>"
             "<p><a href=\"https://bitbucket.org/blaze/tvnao\">"
             "https://bitbucket.org/blaze/tvnao</a></p>")
+
+    def quit(self):
+        self.thread_pool.waitForDone()
+        self.close()
 
 
 def main():
