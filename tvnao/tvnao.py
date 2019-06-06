@@ -129,10 +129,6 @@ class MainWindow(QtWidgets.QWidget):
         self.load_settings()
         self.list = list()
         self.thread_pool = QThreadPool()
-        self.refresh_list_wrapper()
-        guide_worker = Worker(self.load_guide_archive)
-        guide_worker.signals.signal_finished.connect(self.update_guide)
-        self.thread_pool.start(guide_worker)
 
     def load_settings(self):
         self.playlist_addr = Settings.settings.value('playlist/addr', type=str)
@@ -150,7 +146,7 @@ class MainWindow(QtWidgets.QWidget):
     def refresh_list_wrapper(self):
         list_worker = Worker(self.refresh_list)
         list_worker.signals.signal_error.connect(
-            lambda x: QtWidgets.QMessageBox.warning(None, "Network Error", x))
+            lambda x: QtWidgets.QMessageBox.warning(self, "Network Error", x))
         self.thread_pool.start(list_worker)
 
     def refresh_list(self):
@@ -284,6 +280,11 @@ class MainWindow(QtWidgets.QWidget):
             QtWidgets.QApplication.clipboard().setText(
                 self.list[self.ui.listWidget.currentRow()][1])
 
+    def load_guide_wrapper(self):
+        guide_worker = Worker(self.load_guide_archive)
+        guide_worker.signals.signal_finished.connect(self.update_guide)
+        self.thread_pool.start(guide_worker)
+
     def load_guide_archive(self):
         self.sh = ScheduleHandler(self.guide_addr)
 
@@ -321,4 +322,6 @@ def main():
     tv_widget.setWindowIcon(QtGui.QIcon.fromTheme(
         'video-television', QtGui.QIcon(":/icons/video-television.svg")))
     tv_widget.show()
+    tv_widget.refresh_list_wrapper()
+    tv_widget.load_guide_wrapper()
     sys.exit(app.exec_())
