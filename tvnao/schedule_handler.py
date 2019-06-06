@@ -29,8 +29,10 @@ class ScheduleHandler:
         if not os.path.getsize(self.dbname):
             self._create_database(db)
             refill = os.path.exists(self.jtv_file)
-        if self._download_file(self.schedule_addr, self.jtv_file) or refill:
-            if not refill:
+        dirty_flag = os.path.exists(self.dbname + "-journal")
+        if self._download_file(self.schedule_addr, self.jtv_file)\
+                or refill or dirty_flag:
+            if dirty_flag or not refill:
                 self._flush_database(db)
             self._add_to_database(db)
         db.close()
