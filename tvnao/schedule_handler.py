@@ -24,22 +24,21 @@ class ScheduleHandler:
         self.offset = offset
         self.tz = tz
         self._set_prefix()
+        self.db = sqlite3.connect(self.dbname, check_same_thread=False)
+        self.c = self.db.cursor()
         refill = False
-        db = sqlite3.connect(self.dbname)
         if not os.path.getsize(self.dbname):
-            self._create_database(db)
+            self._create_database()
             refill = os.path.exists(self.jtv_file)
         dirty_flag = os.path.exists(self.dbname + "-journal")
         if self._download_file(self.schedule_addr, self.jtv_file)\
                 or refill or dirty_flag:
             if dirty_flag or not refill:
-                self._flush_database(db)
-            self._add_to_database(db)
-        db.close()
+                self._flush_database()
+            self._add_to_database()
 
     def __del__(self):
-        if self.db:
-            self.db.close()
+        self.db.close()
 
     def _set_prefix(self) -> None:
         prefix = ""
@@ -82,13 +81,12 @@ class ScheduleHandler:
             return False
         return True
 
-    def _create_database(self, db: sqlite3.Connection) -> None:
+    def _create_database(self) -> None:
         print("creating database", self.dbname)
-        cursor = db.cursor()
-        cursor.execute("CREATE TABLE program "
+        self.c.execute("CREATE TABLE program "
                        "(channel text, start integer, stop integer, desc text,"
                        " primary key(channel, start, stop))")
-        db.commit()
+        self.db.commit()
 
     def _parse_titles(self, data: bytes) -> List[str]:
         data = data[26:]
@@ -119,22 +117,20 @@ class ScheduleHandler:
             schedules.append(self._filetime_to_datetime(record[2:-2]))
         return schedules
 
-    def _flush_database(self, db: sqlite3.Connection) -> None:
+    def _flush_database(self) -> None:
         print("flushing database", self.dbname)
-        cursor = db.cursor()
         try:
-            cursor.execute("DELETE FROM program")
-            db.commit()
+            self.c.execute("DELETE FROM program")
+            self.db.commit()
         except sqlite3.Error as e:
             print("Database Error:", e)
             os.remove(self.dbname)
             return
-        cursor.execute("VACUUM")
+        self.c.execute("VACUUM")
 
-    def _add_to_database(self, db: sqlite3.Connection) -> None:
+    def _add_to_database(self) -> None:
         print("writing into database", self.dbname)
         archive = zipfile.ZipFile(self.jtv_file, 'r')
-        cursor = db.cursor()
         for filename in archive.namelist():
             if filename.endswith(".pdt"):
                 try:
@@ -160,18 +156,14 @@ class ScheduleHandler:
                                  channel_schedules[i+1].strftime(time_format),
                                  curr_title,
                                  )
-                        cursor.execute("INSERT INTO program VALUES (?,?,?,?)",
+                        self.c.execute("INSERT INTO program VALUES (?,?,?,?)",
                                        entry)
                         i += 1
         archive.close()
-        db.commit()
+        self.db.commit()
 
     def get_schedule(self,
                      date: str, channel: str, full_day: bool = False) -> str:
-        if not self.db:
-            self.db = sqlite3.connect(
-                "file:{}?mode=ro".format(self.dbname), uri=True)
-            self.c = self.db.cursor()
         currtime = int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
         format = lambda x: "<tr{0}><td><b>{1}:{2}</b></td>"\
                            "<td><span>{3}</span></td></tr>"\
