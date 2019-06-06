@@ -311,6 +311,7 @@ class MainWindow(QtWidgets.QWidget):
             "https://bitbucket.org/blaze/tvnao</a></p>")
 
     def quit(self):
+        self.hide()
         self.thread_pool.waitForDone()
         self.close()
 
