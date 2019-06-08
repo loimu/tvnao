@@ -268,12 +268,13 @@ class MainWindow(QtWidgets.QWidget):
         self.update_guide()
 
     def append_local_file(self):
-        if len(sys.argv) > 1 and path.exists(sys.argv[1]):
-            with open(sys.argv[1], 'r') as local_playlist:
-                file_contents = local_playlist.read()
-                if '#EXTM3U' in file_contents:
-                    return file_contents.replace('#EXTM3U', '', 1)
-        return ""
+        contents = ""
+        if len(sys.argv) > 1:
+            for file in sys.argv[1:]:
+                if path.isfile(file):
+                    with open(file, 'r') as local_playlist:
+                        contents += local_playlist.read()
+        return contents
 
     def copy_to_clipboard(self):
         if self.list:
