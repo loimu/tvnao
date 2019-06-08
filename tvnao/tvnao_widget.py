@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'tvnao_widget.ui'
+# Form implementation generated from reading ui file 'tvnao/tvnao_widget.ui'
 #
-# Created by: PyQt5 UI code generator 5.5.1
+# Created by: PyQt5 UI code generator 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -69,9 +70,10 @@ class Ui_Form(object):
         self.guideFullButton.setText(_translate("Form", "Full"))
         self.guideNextButton.setText(_translate("Form", "Tomorrow"))
         self.lineEditFilter.setPlaceholderText(_translate("Form", "Filter ..."))
-        self.buttonMenu.setText(_translate("Form", "Menu"))
+        self.buttonMenu.setText(_translate("Form", "&Menu"))
         self.buttonGo.setToolTip(_translate("Form", "Play selected channel"))
-        self.buttonGo.setText(_translate("Form", "Watch"))
+        self.buttonGo.setText(_translate("Form", "&Watch"))
         self.buttonGuide.setToolTip(_translate("Form", "Show TV guide (Ctrl+G)"))
         self.buttonGuide.setText(_translate("Form", "..."))
+
 

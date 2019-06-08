@@ -78,23 +78,23 @@ class MainWindow(QtWidgets.QWidget):
         copy_action.setShortcut('Ctrl+C')
         copy_action.setIcon(QtGui.QIcon.fromTheme('edit-copy'))
         copy_action.triggered.connect(self.copy_to_clipboard)
-        refresh_action = QtWidgets.QAction('Refresh', self)
+        refresh_action = QtWidgets.QAction('&Refresh', self)
         self.addAction(refresh_action)
         refresh_action.setShortcut('Ctrl+R')
         refresh_action.setIcon(QtGui.QIcon.fromTheme(
             'view-refresh', QtGui.QIcon(":/icons/view-refresh.svg")))
         refresh_action.triggered.connect(self.refresh_forced)
-        settings_action = QtWidgets.QAction('Settings', self)
+        settings_action = QtWidgets.QAction('&Settings', self)
         self.addAction(settings_action)
         settings_action.setShortcut('Ctrl+P')
         settings_action.setIcon(QtGui.QIcon.fromTheme(
             'configure', QtGui.QIcon(":/icons/configure.svg")))
         settings_action.triggered.connect(self.show_settings)
-        about_action = QtWidgets.QAction('About', self)
+        about_action = QtWidgets.QAction('&About', self)
         about_action.setIcon(QtGui.QIcon.fromTheme(
             'video-television', QtGui.QIcon(":/icons/video-television.svg")))
         about_action.triggered.connect(self.show_about)
-        quit_action = QtWidgets.QAction('Quit', self)
+        quit_action = QtWidgets.QAction('&Quit', self)
         self.addAction(quit_action)
         quit_action.setShortcut('Ctrl+Q')
         quit_action.setIcon(QtGui.QIcon.fromTheme(

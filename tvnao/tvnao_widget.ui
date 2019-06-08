@@ -94,7 +94,7 @@
      <item>
       <widget class="QPushButton" name="buttonMenu">
        <property name="text">
-        <string>Menu</string>
+        <string>&amp;Menu</string>
        </property>
       </widget>
      </item>
@@ -104,7 +104,7 @@
         <string>Play selected channel</string>
        </property>
        <property name="text">
-        <string>Watch</string>
+        <string>&amp;Watch</string>
        </property>
       </widget>
      </item>
