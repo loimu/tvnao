@@ -271,11 +271,10 @@ class MainWindow(QtWidgets.QWidget):
 
     def append_local_file(self):
         contents = ""
-        if len(sys.argv) > 1:
-            for file in sys.argv[1:]:
-                if path.isfile(file):
-                    with open(file, 'r') as local_playlist:
-                        contents += local_playlist.read()
+        for file in sys.argv[1:]:
+            if path.isfile(file):
+                with open(file, 'r') as local_playlist:
+                    contents += local_playlist.read()
         return contents
 
     def copy_to_clipboard(self):
