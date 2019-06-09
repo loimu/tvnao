@@ -155,6 +155,8 @@ class MainWindow(QtWidgets.QWidget):
             response = request.urlopen(self.playlist_addr)
         except error.URLError as e:
             return str(e.reason)
+        except ValueError as e:
+            return str(e)
         playlist = response.read().decode('utf-8')
         playlist += self.append_local_file()
         counter = 0

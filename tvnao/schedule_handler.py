@@ -61,6 +61,9 @@ class ScheduleHandler:
         except error.URLError as e:
             print("Connection error:", str(e.reason))
             return False
+        except ValueError as e:
+            print("Connection error:", str(e))
+            return False
         headers = dict(response.getheaders())
         if headers['Content-Type'] != 'application/zip':
             return False
