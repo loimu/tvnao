@@ -16,6 +16,7 @@ from .tvnao_widget import Ui_Form
 from .settings import Settings
 from .tvnao_rc import *
 from .schedule_handler import ScheduleHandler
+from .guide_viewer import GuideViewer
 
 
 class WorkerSignals(QtCore.QObject):
@@ -84,6 +85,10 @@ class MainWindow(QtWidgets.QWidget):
         refresh_action.setIcon(QtGui.QIcon.fromTheme(
             'view-refresh', QtGui.QIcon(":/icons/view-refresh.svg")))
         refresh_action.triggered.connect(self.refresh_forced)
+        viewer_action = QtWidgets.QAction(self)
+        self.addAction(viewer_action)
+        viewer_action.setShortcut('Ctrl+V')
+        viewer_action.triggered.connect(self.show_guide_viewer)
         settings_action = QtWidgets.QAction('&Settings', self)
         self.addAction(settings_action)
         settings_action.setShortcut('Ctrl+P')
@@ -303,6 +308,11 @@ class MainWindow(QtWidgets.QWidget):
         settings_dialog = Settings(self)
         settings_dialog.show()
         settings_dialog.destroyed.connect(self.load_settings)
+
+    def show_guide_viewer(self):
+        channel = self.list[self.ui.listWidget.currentRow()][0]
+        gw = GuideViewer(self, self.sh, self.list, channel)
+        gw.show()
 
     def show_about(self):
         QtWidgets.QMessageBox.about(
