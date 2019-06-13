@@ -67,13 +67,11 @@ class MainWindow(QtWidgets.QWidget):
         search_focus_action = QtWidgets.QAction(self)
         self.addAction(search_focus_action)
         search_focus_action.setShortcut('Ctrl+S')
-        search_focus_action.triggered.connect(
-            lambda: self.ui.lineEditFilter.setFocus())
+        search_focus_action.triggered.connect(self.ui.lineEditFilter.setFocus)
         clear_search_action = QtWidgets.QAction(self)
         self.addAction(clear_search_action)
         clear_search_action.setShortcut('Esc')
-        clear_search_action.triggered.connect(
-            lambda: self.ui.lineEditFilter.clear())
+        clear_search_action.triggered.connect(self.ui.lineEditFilter.clear)
         copy_action = QtWidgets.QAction('Copy address', self)
         self.addAction(copy_action)
         copy_action.setShortcut('Ctrl+C')
