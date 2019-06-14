@@ -157,8 +157,7 @@ class ScheduleHandler:
                         entry = (channel_id,
                                  channel_schedules[i].strftime(time_format),
                                  channel_schedules[i+1].strftime(time_format),
-                                 curr_title,
-                                 )
+                                 curr_title)
                         self.c.execute("INSERT INTO program VALUES (?,?,?,?)",
                                        entry)
                         i += 1
@@ -168,25 +167,26 @@ class ScheduleHandler:
     def get_schedule(self,
                      date: str, channel: str, full_day: bool = False) -> str:
         currtime = int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
-        format = lambda x: "<tr{0}><td><b>{1}:{2}</b></td>"\
-                           "<td><span>{3}</span></td></tr>"\
-            .format(x[0], str(x[1])[-6:-4], str(x[1])[-4:-2], x[2])
+        format = lambda x, y, z: "<tr{0}><td><b>{1}:{2}</b></td>"\
+                                 "<td><span>{3}</span></td></tr>".format(
+                                     x, str(y)[-6:-4], str(y)[-4:-2], z)
+        cut = lambda x: x if len(x) < 65 else x[:x.rfind('.', 0, 65)]
         text = ""
         if not full_day:
             select = (channel, currtime)
             for r in self.c.execute("SELECT * FROM program WHERE channel = ?"
                                     " AND stop > ? LIMIT 5 ;", select):
                 style = " style='color:indigo;'" if currtime > r[1] else ""
-                text += format((style, r[1], r[3]))
+                text += format(style, r[1], r[3])
         else:
             select = (channel, str(date)+'000000', str(date)+'235900')
             for r in self.c.execute("SELECT * FROM program WHERE channel = ?"
                                     " AND stop > ? AND start < ? ;", select):
                 if currtime > r[1] and currtime > r[2]:
-                    text += format((" style='color:gray;'", r[1], r[3][:60]))
+                    text += format(" style='color:grey;'", r[1], cut(r[3]))
                 elif currtime > r[1] and currtime < r[2]:
-                    text += format((" style='color:indigo;'", r[1], r[3]))
+                    text += format(" style='color:indigo;'", r[1], r[3])
                 else:
-                    text += format(("", r[1], r[3][:60]))
+                    text += format("", r[1], cut(r[3]))
         return "<table>{}</table>".format(
             text if text else "<tr><td>n/a</td></tr>")
