@@ -167,8 +167,8 @@ class ScheduleHandler:
     def get_schedule(self,
                      date: str, channel: str, full_day: bool = False) -> str:
         currtime = int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
-        format = lambda x, y, z: "<tr{0}><td><b>{1}:{2}</b></td>"\
-                                 "<td><span>{3}</span></td></tr>".format(
+        format = lambda x, y, z: "<tr{}><td><b>{}:{}</b></td>"\
+                                 "<td><span>{}</span></td></tr>".format(
                                      x, str(y)[-6:-4], str(y)[-4:-2], z)
         cut = lambda x: x if len(x) < 65 else x[:x.rfind('.', 0, 65)]
         text = ""
