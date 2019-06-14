@@ -53,12 +53,8 @@ class Settings(QtWidgets.QDialog):
         self.ui.playerSingle.setChecked(
             self.settings.value('player/single', type=bool))
         self.ui.guideAddr.setText(self.settings.value('guide/addr', type=str))
-        self.setWindowIcon(
-            QtGui.QIcon.fromTheme('configure',
-                                  QtGui.QIcon(":/icons/configure.svg")))
-        self.ui.playerButton.setIcon(
-            QtGui.QIcon.fromTheme('document-open',
-                                  QtGui.QIcon(":/icons/document-open.svg")))
+        self.setWindowIcon(QtGui.QIcon.fromTheme('configure'))
+        self.ui.playerButton.setIcon(QtGui.QIcon.fromTheme('document-open'))
 
     @pyqtSlot()
     def on_playerButton_released(self):

@@ -51,6 +51,8 @@ class MainWindow(QtWidgets.QWidget):
         super(MainWindow, self).__init__()
         self.ui = Ui_Form()
         self.ui.setupUi(self)
+        if not QtGui.QIcon.hasThemeIcon('video-television'):
+            QtGui.QIcon.setThemeName("breeze")
         # actions setup
         show_hide_action = QtWidgets.QAction(self)
         self.addAction(show_hide_action)
@@ -80,8 +82,7 @@ class MainWindow(QtWidgets.QWidget):
         refresh_action = QtWidgets.QAction('&Refresh', self)
         self.addAction(refresh_action)
         refresh_action.setShortcut('Ctrl+R')
-        refresh_action.setIcon(QtGui.QIcon.fromTheme(
-            'view-refresh', QtGui.QIcon(":/icons/view-refresh.svg")))
+        refresh_action.setIcon(QtGui.QIcon.fromTheme('view-refresh'))
         refresh_action.triggered.connect(self.refresh_forced)
         viewer_action = QtWidgets.QAction(self)
         self.addAction(viewer_action)
@@ -90,18 +91,15 @@ class MainWindow(QtWidgets.QWidget):
         settings_action = QtWidgets.QAction('&Settings', self)
         self.addAction(settings_action)
         settings_action.setShortcut('Ctrl+P')
-        settings_action.setIcon(QtGui.QIcon.fromTheme(
-            'configure', QtGui.QIcon(":/icons/configure.svg")))
+        settings_action.setIcon(QtGui.QIcon.fromTheme('configure'))
         settings_action.triggered.connect(self.show_settings)
         about_action = QtWidgets.QAction('&About', self)
-        about_action.setIcon(QtGui.QIcon.fromTheme(
-            'video-television', QtGui.QIcon(":/icons/video-television.svg")))
+        about_action.setIcon(QtGui.QIcon.fromTheme('video-television'))
         about_action.triggered.connect(self.show_about)
         quit_action = QtWidgets.QAction('&Quit', self)
         self.addAction(quit_action)
         quit_action.setShortcut('Ctrl+Q')
-        quit_action.setIcon(QtGui.QIcon.fromTheme(
-            'application-exit', QtGui.QIcon(":/icons/application-exit.svg")))
+        quit_action.setIcon(QtGui.QIcon.fromTheme('application-exit'))
         quit_action.triggered.connect(self.quit)
         # signal/slot setup
         self.ui.buttonGo.released.connect(self.activate_item)
@@ -118,12 +116,9 @@ class MainWindow(QtWidgets.QWidget):
         menu.addAction(quit_action)
         self.ui.listWidget.addAction(copy_action)
         self.ui.listWidget.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
-        self.ui.buttonMenu.setIcon(QtGui.QIcon.fromTheme(
-            'video-television', QtGui.QIcon(":/icons/video-television.svg")))
+        self.ui.buttonMenu.setIcon(QtGui.QIcon.fromTheme('video-television'))
         self.ui.buttonMenu.setMenu(menu)
-        self.ui.buttonGo.setIcon(QtGui.QIcon.fromTheme(
-            'media-playback-start',
-            QtGui.QIcon(":/icons/media-playback-start.svg")))
+        self.ui.buttonGo.setIcon(QtGui.QIcon.fromTheme('media-playback-start'))
         self.set_guide_visibility(False)
         QtWidgets.QScroller.grabGesture(
             self.ui.listWidget, QtWidgets.QScroller.TouchGesture)
@@ -334,8 +329,7 @@ def main():
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)
     app = QtWidgets.QApplication(sys.argv)
     tv_widget = MainWindow()
-    tv_widget.setWindowIcon(QtGui.QIcon.fromTheme(
-        'video-television', QtGui.QIcon(":/icons/video-television.svg")))
+    tv_widget.setWindowIcon(QtGui.QIcon.fromTheme('video-television'))
     tv_widget.show()
     tv_widget.refresh_list_wrapper()
     tv_widget.load_guide_wrapper()

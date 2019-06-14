@@ -1,10 +1,13 @@
 <!DOCTYPE RCC><RCC version="1.0">
-<qresource>
-<file>./icons/application-exit.svg</file>
-<file>./icons/configure.svg</file>
-<file>./icons/document-open.svg</file>
-<file>./icons/media-playback-start.svg</file>
-<file>./icons/view-refresh.svg</file>
-<file>./icons/video-television.svg</file>
+<qresource prefix="/">
+<file>icons/breeze/index.theme</file>
+<file>icons/breeze/actions/16/application-exit.svg</file>
+<file>icons/breeze/actions/16/configure.svg</file>
+<file>icons/breeze/actions/16/document-open.svg</file>
+<file>icons/breeze/actions/16/media-playback-start.svg</file>
+<file>icons/breeze/actions/16/view-refresh.svg</file>
+<file>icons/breeze/devices/22/video-television.svg</file>
+<file>icons/breeze/devices/64/video-television.svg</file>
+<file>icons/breeze/mimetypes/16/video-webm.svg</file>
 </qresource>
 </RCC>
