@@ -149,13 +149,14 @@ class MainWindow(QtWidgets.QWidget):
 
     def refresh_list(self):
         print("getting remote playlist", self.playlist_addr)
+        response, status = None, ""
         try:
             response = request.urlopen(self.playlist_addr)
         except error.URLError as e:
-            return str(e.reason)
+            status = str(e.reason)
         except ValueError as e:
-            return str(e)
-        playlist = response.read().decode('utf-8')
+            status = str(e)
+        playlist = response.read().decode('utf-8') if response else ""
         playlist += self.append_local_file()
         counter = 0
         for line in playlist.splitlines():
@@ -175,7 +176,7 @@ class MainWindow(QtWidgets.QWidget):
                 item = QtWidgets.QListWidgetItem(name)
                 item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
                 self.ui.listWidget.addItem(item)
-        return ""
+        return status
 
     @pyqtSlot(str, name='on_lineEditFilter_textChanged')
     def filter(self, string):
