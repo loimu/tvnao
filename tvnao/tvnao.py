@@ -110,8 +110,8 @@ class MainWindow(QtWidgets.QWidget):
         # gui setup
         menu = QtWidgets.QMenu()
         menu.addAction(refresh_action)
-        menu.addAction(settings_action)
         menu.addAction(viewer_action)
+        menu.addAction(settings_action)
         menu.addSeparator()
         menu.addAction(about_action)
         menu.addSeparator()
