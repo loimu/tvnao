@@ -4,6 +4,7 @@
 
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import QSettings, pyqtSlot
+
 from .guide_viewer_dialog import Ui_GuideViewerDialog
 
 
@@ -30,9 +31,8 @@ class GuideViewer(QtWidgets.QDialog):
         self.ui.dateEdit.setDate(self.ui.dateEdit.date().addDays(day))
 
     def show_guide(self):
-        date = self.ui.dateEdit.date().toString("yyyyMMdd")
         index = self.ui.comboBox.currentIndex()
-        if index < 0:
-            return
-        text = self.sh.get_schedule(date, self.channels[index], True)
-        self.ui.textBrowser.setText(text)
+        if index > -1 and self.sh:
+            date = self.ui.dateEdit.date().toString("yyyyMMdd")
+            text = self.sh.get_schedule(date, self.channels[index], True)
+            self.ui.textBrowser.setText(text)
