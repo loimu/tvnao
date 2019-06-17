@@ -54,12 +54,6 @@ class MainWindow(QtWidgets.QWidget):
         if not QtGui.QIcon.hasThemeIcon('video-television'):
             QtGui.QIcon.setThemeName("breeze")
         # actions setup
-        show_hide_action = QtWidgets.QAction(self)
-        show_hide_action.setShortcut('Ctrl+G')
-        show_hide_action.triggered.connect(self.show_hide_guide)
-        watch_action = QtWidgets.QAction(self)
-        watch_action.setShortcut('Return')
-        watch_action.triggered.connect(self.activate_item)
         fold_action = QtWidgets.QAction(self)
         fold_action.setShortcut('Ctrl+F')
         fold_action.triggered.connect(self.fold_everything)
@@ -73,14 +67,15 @@ class MainWindow(QtWidgets.QWidget):
         copy_action.setShortcut('Ctrl+C')
         copy_action.setIcon(QtGui.QIcon.fromTheme('edit-copy'))
         copy_action.triggered.connect(self.copy_to_clipboard)
-        self.addActions([show_hide_action, watch_action, search_focus_action,
-                         fold_action, clear_search_action, copy_action])
+        self.addActions([search_focus_action, fold_action, clear_search_action])
         # signal/slot setup
         self.ui.buttonGo.released.connect(self.activate_item)
         self.ui.listWidget.itemDoubleClicked.connect(self.activate_item)
         self.ui.listWidget.itemSelectionChanged.connect(self.update_guide)
         self.ui.buttonGuide.released.connect(self.show_hide_guide)
         # gui setup
+        self.ui.buttonGo.setShortcut('Return')
+        self.ui.buttonGuide.setShortcut('Ctrl+G')
         menu = QtWidgets.QMenu(self)
         menu.addAction(QtGui.QIcon.fromTheme('view-refresh'),
                        '&Refresh', self.refresh_forced, 'Ctrl+R')
