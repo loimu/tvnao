@@ -304,7 +304,8 @@ class MainWindow(QtWidgets.QWidget):
         settings_dialog.destroyed.connect(self.load_settings)
 
     def show_guide_viewer(self):
-        channel = self.list[self.ui.listWidget.currentRow()][0]
+        index = self.ui.listWidget.currentRow()
+        channel = "" if index < 0 else self.list[index][0]
         gw = GuideViewer(self, self.sh, self.list, channel)
         gw.show()
 
