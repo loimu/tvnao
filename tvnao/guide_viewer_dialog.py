@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'guide_viewer_dialog.ui'
+# Form implementation generated from reading ui file 'tvnao/guide_viewer_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.12.1
 #
@@ -64,5 +64,6 @@ class Ui_GuideViewerDialog(object):
         self.prevButton.setText(_translate("GuideViewerDialog", "&Prev"))
         self.nextButton.setText(_translate("GuideViewerDialog", "&Next"))
         self.dateEdit.setDisplayFormat(_translate("GuideViewerDialog", "ddd d.MM.yy"))
+        self.textBrowser.setPlaceholderText(_translate("GuideViewerDialog", "loading…"))
 
 

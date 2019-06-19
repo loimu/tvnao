@@ -259,9 +259,9 @@ class MainWindow(QtWidgets.QWidget):
                 self.list[self.ui.listWidget.currentRow()][1])
 
     def load_guide_wrapper(self):
-        guide_worker = Worker(self.load_guide_archive)
-        guide_worker.signals.signal_finished.connect(self.update_guide)
-        self.thread_pool.start(guide_worker)
+        self.guide_worker = Worker(self.load_guide_archive)
+        self.guide_worker.signals.signal_finished.connect(self.update_guide)
+        self.thread_pool.start(self.guide_worker)
 
     def load_guide_archive(self):
         self.sh = ScheduleHandler(self.guide_addr)
@@ -283,8 +283,10 @@ class MainWindow(QtWidgets.QWidget):
     def show_guide_viewer(self):
         index = self.ui.listWidget.currentRow()
         channel = "" if index < 0 else self.list[index][0]
-        gw = GuideViewer(self, self.sh, self.list, channel)
-        gw.show()
+        gv = GuideViewer(self, self.sh, self.list, channel)
+        gv.show()
+        self.guide_worker.signals.signal_finished.\
+            connect(lambda: gv.reset_handler(self.sh))
 
     def show_about(self):
         QtWidgets.QMessageBox.about(

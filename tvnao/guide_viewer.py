@@ -27,6 +27,10 @@ class GuideViewer(QtWidgets.QDialog):
         self.ui.dateEdit.dateChanged.connect(self.show_guide)
         self.ui.dateEdit.setDate(QtCore.QDate().currentDate())
 
+    def reset_handler(self, sh):
+        self.sh = sh
+        self.show_guide()
+
     def step(self, day):
         self.ui.dateEdit.setDate(self.ui.dateEdit.date().addDays(day))
 
