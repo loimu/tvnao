@@ -10,21 +10,22 @@ import signal
 import re
 
 from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QThreadPool
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal,
+                          QObject, QThreadPool, QRunnable, Qt)
 
 from .tvnao_widget import Ui_Form
 from .settings import Settings
-from .tvnao_rc import *
 from .schedule_handler import ScheduleHandler
 from .guide_viewer import GuideViewer
+from .tvnao_rc import *
 
 
-class WorkerSignals(QtCore.QObject):
+class WorkerSignals(QObject):
     signal_finished = pyqtSignal()
     signal_error = pyqtSignal(str)
 
 
-class Worker(QtCore.QRunnable):
+class Worker(QRunnable):
 
     def __init__(self, fn, *args, **kwargs):
         super(Worker, self).__init__()
@@ -92,7 +93,7 @@ class MainWindow(QtWidgets.QWidget):
                        '&Quit', self.quit, 'Ctrl+Q')
         for action in menu.actions():
             action.setShortcutVisibleInContextMenu(True)
-        self.ui.listWidget.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        self.ui.listWidget.setContextMenuPolicy(Qt.ActionsContextMenu)
         self.ui.buttonMenu.setIcon(QtGui.QIcon.fromTheme('video-television'))
         self.ui.buttonMenu.setMenu(menu)
         self.ui.buttonGo.setIcon(QtGui.QIcon.fromTheme('media-playback-start'))
