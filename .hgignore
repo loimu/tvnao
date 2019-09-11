@@ -1,7 +1,0 @@
-# use glob syntax.
-syntax: glob
-*.pyc
-
-# switch to regexp syntax.
-syntax: regexp
-^.kdev4$
