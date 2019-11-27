@@ -97,7 +97,10 @@ class ScheduleHandler:
         while len(data) > 0:
             title_length = int(struct.unpack('<H', data[0:2])[0])
             data = data[2:]
-            title = data[0:title_length].decode('cp1251')
+            try:
+                title = data[0:title_length].decode('cp1251')
+            except UnicodeDecodeError:
+                return titles
             data = data[title_length:]
             titles.append(title)
         return titles
