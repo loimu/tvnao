@@ -169,27 +169,28 @@ class ScheduleHandler:
 
     def get_schedule(self,
                      date: str, channel: str, full_day: bool = False) -> str:
-        currtime = int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
-        format = lambda x, y, z: "<tr{}><td><b>{}:{}</b></td>"\
-                                 "<td><span>{}</span></td></tr>".format(
-                                     x, str(y)[-6:-4], str(y)[-4:-2], z)
-        cut = lambda x: x if len(x) < 65 else x[:x.rfind('.', 0, 65)]
         text = ""
+        currtime = int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
+        format = lambda x, y, z:\
+            "<tr{}><td><b>{}:{}</b></td><td><span>{}</span></td></tr>"\
+            .format(x, str(y)[-6:-4], str(y)[-4:-2], z)
+        cut = lambda x: x if len(x) < 65 else x[:x.rfind('.', 0, 65)]
         if not full_day:
-            select = (channel, currtime)
-            for r in self.c.execute("SELECT * FROM program WHERE channel = ?"
-                                    " AND stop > ? LIMIT 5 ;", select):
-                style = " style='color:indigo;'" if currtime > r[1] else ""
-                text += format(style, r[1], r[3])
+            for (_, start, _, note) in self.c.execute(
+                    "SELECT * FROM program WHERE channel = ? AND stop > ? "
+                    "LIMIT 5 ;", (channel, currtime)):
+                style = " style='color:indigo;'" if currtime > start else ""
+                text += format(style, start, note)
         else:
-            select = (channel, str(date)+'000000', str(date)+'235900')
-            for r in self.c.execute("SELECT * FROM program WHERE channel = ?"
-                                    " AND stop > ? AND start < ? ;", select):
-                if currtime > r[1] and currtime > r[2]:
-                    text += format(" style='color:grey;'", r[1], cut(r[3]))
-                elif currtime > r[1] and currtime < r[2]:
-                    text += format(" style='color:indigo;'", r[1], r[3])
+            for (_, start, stop, note) in self.c.execute(
+                    "SELECT * FROM program "
+                    "WHERE channel = ? AND stop > ? AND start < ? ;",
+                    (channel, str(date)+'000000', str(date)+'235900')):
+                if currtime > start and currtime > stop:
+                    text += format(" style='color:grey;'", start, cut(note))
+                elif currtime > start and currtime < stop:
+                    text += format(" style='color:indigo;'", start, note)
                 else:
-                    text += format("", r[1], cut(r[3]))
+                    text += format("", start, cut(note))
         return "<table>{}</table>".format(
             text if text else "<tr><td>n/a</td></tr>")

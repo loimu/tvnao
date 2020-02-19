@@ -16,10 +16,10 @@ class GuideViewer(QtWidgets.QDialog):
         self.ui.setupUi(self)
         self.sh = sh
         self.channels = []
-        for item in channel_list:
-            if item[2] and item[2] not in self.channels:
-                self.ui.comboBox.addItem(item[0])
-                self.channels.append(item[2])
+        for (name, _, id) in channel_list:
+            if id and id not in self.channels:
+                self.ui.comboBox.addItem(name)
+                self.channels.append(id)
         self.ui.comboBox.setCurrentText(channelname)
         self.ui.comboBox.currentIndexChanged.connect(self.show_guide)
         self.ui.prevButton.released.connect(lambda: self.step(-1))
