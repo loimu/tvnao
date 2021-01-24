@@ -88,7 +88,7 @@ class ScheduleHandler:
         print("creating database", self.dbname)
         self.c.execute("CREATE TABLE program "
                        "(channel text, start integer, stop integer, desc text,"
-                       " primary key(channel, start, stop))")
+                       " primary key(channel, stop))")
         self.db.commit()
 
     def _parse_titles(self, data: bytes) -> List[str]:
@@ -176,15 +176,16 @@ class ScheduleHandler:
             .format(x, str(y)[-6:-4], str(y)[-4:-2], z)
         cut = lambda x: x if len(x) < 65 else x[:x.rfind('.', 0, 65)]
         if not full_day:
-            for (_, start, _, note) in self.c.execute(
-                    "SELECT * FROM program WHERE channel = ? AND stop > ? "
-                    "LIMIT 5 ;", (channel, currtime)):
+            for (start, note) in self.c.execute(
+                    "SELECT start, desc FROM program "
+                    "WHERE channel = ? AND stop > ? LIMIT 5;",
+                    (channel, currtime)):
                 style = " style='color:indigo;'" if currtime > start else ""
                 text += format(style, start, note)
         else:
-            for (_, start, stop, note) in self.c.execute(
-                    "SELECT * FROM program "
-                    "WHERE channel = ? AND stop > ? AND start < ? ;",
+            for (start, stop, note) in self.c.execute(
+                    "SELECT start, stop, desc FROM program "
+                    "WHERE channel = ? AND stop > ? AND start < ?;",
                     (channel, str(date)+'000000', str(date)+'235900')):
                 if currtime > start and currtime > stop:
                     text += format(" style='color:grey;'", start, cut(note))
