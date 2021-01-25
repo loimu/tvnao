@@ -88,7 +88,7 @@ class ScheduleHandler:
         print("creating database", self.dbname)
         self.c.execute("CREATE TABLE program "
                        "(channel text, start integer, stop integer, desc text,"
-                       " primary key(channel, stop))")
+                       " primary key(channel, start, stop))")
         self.db.commit()
 
     def _parse_titles(self, data: bytes) -> List[str]:
