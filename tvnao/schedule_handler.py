@@ -88,7 +88,7 @@ class ScheduleHandler:
         print("creating database", self.dbname)
         self.c.execute("CREATE TABLE program "
                        "(channel text, start integer, stop integer, desc text,"
-                       " primary key(channel, start, stop))")
+                       " primary key(channel, stop))")
         self.db.commit()
 
     def _parse_titles(self, data: bytes) -> List[str]:
@@ -161,9 +161,12 @@ class ScheduleHandler:
                                  channel_schedules[i].strftime(time_format),
                                  channel_schedules[i+1].strftime(time_format),
                                  curr_title)
-                        self.c.execute("INSERT INTO program VALUES (?,?,?,?)",
-                                       entry)
-                        i += 1
+                        try:
+                            self.c.execute("INSERT INTO program VALUES (?,?,?,?)",
+                                           entry)
+                            i += 1
+                        except sqlite3.IntegrityError:
+                            pass
         archive.close()
         self.db.commit()
 
