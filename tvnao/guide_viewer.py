@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2019 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2021 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
@@ -16,8 +16,8 @@ class GuideViewer(QtWidgets.QDialog):
         self.ui.setupUi(self)
         self.sh = sh
         self.channels = []
-        for (name, _, id) in channel_list:
-            if id and id not in self.channels:
+        for name, id in channel_list:
+            if id not in self.channels:
                 self.ui.comboBox.addItem(name)
                 self.channels.append(id)
         self.ui.comboBox.setCurrentText(channelname)

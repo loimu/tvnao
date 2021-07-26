@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2019 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2021 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
@@ -103,7 +103,6 @@ class MainWindow(QtWidgets.QWidget):
         # init
         Settings.first_run()
         self.load_settings()
-        self.list = list()
         self.thread_pool = QThreadPool()
 
     def load_settings(self):
@@ -116,7 +115,6 @@ class MainWindow(QtWidgets.QWidget):
     def refresh_forced(self):
         self.folded = False
         self.ui.listWidget.clear()
-        self.list = list()
         self.refresh_list_wrapper()
 
     def refresh_list_wrapper(self):
@@ -145,14 +143,13 @@ class MainWindow(QtWidgets.QWidget):
                 id = match.group(2) if match else None
                 title = re.match(r".*group-title=\"(.+?)\".*", line)
                 if title:
-                    self.list.append((title.group(1), None, None))
                     item = QtWidgets.QListWidgetItem(title.group(1))
                     self.ui.listWidget.addItem(item)
             elif line.startswith('udp://') or line.startswith('http://')\
                     or line.startswith('file://'):
-                self.list.append((name, line, id))
                 item = QtWidgets.QListWidgetItem(name)
                 item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
+                item.setData(Qt.UserRole, (line, id))
                 self.ui.listWidget.addItem(item)
         return status
 
@@ -160,33 +157,32 @@ class MainWindow(QtWidgets.QWidget):
     def filter(self, string):
         self.folded = False
         self.search_string = string
-        for index, entry in enumerate(self.list):
-            hidden = bool(entry[1]) and string.lower()\
-                not in self.ui.listWidget.item(index).text().lower()
-            self.ui.listWidget.item(index).setHidden(hidden)
+        for item in self.ui.listWidget.findItems("", Qt.MatchContains):
+            item.setHidden(string.lower() not in item.text().lower()
+                           and bool(item.data(Qt.UserRole)))
 
     def activate_item(self):
-        row = self.ui.listWidget.currentRow()
-        if not len(self.list) or row < 0:
+        selected_item = self.ui.listWidget.currentItem()
+        if not selected_item:
             return
-        if not self.list[row][1]:
+        data = selected_item.data(Qt.UserRole)
+        if not data:
             self.folded = False
-            row += 1
-            while row < len(self.list) and self.list[row][1]:
-                item = self.ui.listWidget.item(row)
-                item.setHidden(not item.isHidden()
-                               or self.search_string.lower()
-                               not in item.text().lower())
-                row += 1
-                if item is None:
-                    break
+            row = self.ui.listWidget.currentRow() + 1
+            while row < self.ui.listWidget.count()\
+                and bool(self.ui.listWidget.item(row).data(Qt.UserRole)):
+                    item = self.ui.listWidget.item(row)
+                    item.setHidden(not item.isHidden()
+                                   or self.search_string.lower()
+                                   not in item.text().lower())
+                    row += 1
             return
         command = [self.player]
         if self.player.count('mpv'):
             command.append('--force-media-title=' +
                            self.ui.listWidget.currentItem().text())
         command += self.options.split()
-        command.append(self.list[row][1])
+        command.append(data[0])
         if self.keep_single and self.process:
             try:
                 if 'win' in sys.platform:
@@ -222,8 +218,10 @@ class MainWindow(QtWidgets.QWidget):
         if self.ui.guideBrowser.isVisible():
             if self.ui.listWidget.count() < 1:
                 return
-            id = self.list[self.ui.listWidget.currentRow()][2]
-            if not id:
+            data = self.ui.listWidget.currentItem().data(Qt.UserRole)
+            if data:
+                id = data[1]
+            else:
                 self.ui.guideBrowser.setText("<b>not available</b>")
                 return
             date = int(datetime.date.today().strftime("%Y%m%d"))
@@ -255,9 +253,9 @@ class MainWindow(QtWidgets.QWidget):
         return contents
 
     def copy_to_clipboard(self):
-        if self.list:
-            QtWidgets.QApplication.clipboard().setText(
-                self.list[self.ui.listWidget.currentRow()][1])
+        data = self.ui.listWidget.currentItem().data(Qt.UserRole)
+        if bool(data):
+            QtWidgets.QApplication.clipboard().setText(data[0])
 
     def load_guide_wrapper(self):
         self.guide_worker = Worker(self.load_guide_archive)
@@ -268,12 +266,9 @@ class MainWindow(QtWidgets.QWidget):
         self.sh = ScheduleHandler(self.guide_addr)
 
     def fold_everything(self):
-        for row, entry in enumerate(self.list):
-            item = self.ui.listWidget.item(row)
-            hidden = bool(entry[1]) and (
-                not self.folded
-                or self.search_string.lower() not in item.text().lower())
-            self.ui.listWidget.item(row).setHidden(hidden)
+        for item in self.ui.listWidget.findItems("", Qt.MatchContains):
+            item.setHidden((self.search_string.lower() not in item.text().lower()
+                            or not self.folded) and bool(item.data(Qt.UserRole)))
         self.folded = not self.folded
 
     def show_settings(self):
@@ -282,9 +277,11 @@ class MainWindow(QtWidgets.QWidget):
         settings_dialog.destroyed.connect(self.load_settings)
 
     def show_guide_viewer(self):
-        index = self.ui.listWidget.currentRow()
-        channel = "" if index < 0 else self.list[index][0]
-        gv = GuideViewer(self, self.sh, self.list, channel)
+        item = self.ui.listWidget.currentItem()
+        channel = "" if not item.data(Qt.UserRole) else item.text()
+        list = [(x.text(), x.data(Qt.UserRole)[1]) for x in self.ui.listWidget\
+                .findItems("", Qt.MatchContains) if bool(x.data(Qt.UserRole))]
+        gv = GuideViewer(self, self.sh, list, channel)
         gv.show()
         self.guide_worker.signals.signal_finished.\
             connect(lambda: gv.reset_handler(self.sh))
@@ -292,7 +289,7 @@ class MainWindow(QtWidgets.QWidget):
     def show_about(self):
         QtWidgets.QMessageBox.about(
             self, "About tvnao",
-            "<p><b>tvnao</b> v0.11.0 &copy; 2016-2019 Blaze</p>"
+            "<p><b>tvnao</b> v0.12.0 &copy; 2016-2021 Blaze</p>"
             "<p>&lt;blaze@vivaldi.net&gt;</p>"
             "<p><a href=\"https://bitbucket.org/blaze/tvnao\">"
             "https://bitbucket.org/blaze/tvnao</a></p>")
