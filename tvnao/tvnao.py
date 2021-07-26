@@ -47,6 +47,7 @@ class MainWindow(QtWidgets.QWidget):
     process = None
     search_string = ""
     folded = False
+    bookmarks = []
 
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -66,10 +67,15 @@ class MainWindow(QtWidgets.QWidget):
         search_action.triggered.connect(self.ui.lineEditFilter.setFocus)
         self.addActions([clear_action, fold_action, search_action])
         copy_action = QtWidgets.QAction('Copy address', self)
-        copy_action.setShortcut('Ctrl+C')
+        copy_action.setShortcut('Ctrl+Shift+C')
         copy_action.setIcon(QtGui.QIcon.fromTheme('edit-copy'))
         self.ui.listWidget.addAction(copy_action)
         copy_action.triggered.connect(self.copy_to_clipboard)
+        bookmark_action = QtWidgets.QAction('Bookmark Current', self)
+        bookmark_action.setShortcut('Ctrl+Shift+B')
+        bookmark_action.setIcon(QtGui.QIcon.fromTheme('bookmark-new'))
+        bookmark_action.triggered.connect(self.bookmark_current)
+        self.ui.listWidget.addAction(bookmark_action)
         # signal/slot setup
         self.ui.buttonGo.released.connect(self.activate_item)
         self.ui.listWidget.itemDoubleClicked.connect(self.activate_item)
@@ -85,6 +91,11 @@ class MainWindow(QtWidgets.QWidget):
                        '&Viewer', self.show_guide_viewer, 'Ctrl+V')
         menu.addAction(QtGui.QIcon.fromTheme('configure'),
                        '&Settings', self.show_settings, 'Ctrl+P')
+        self.view_bookmarks_action = menu.addAction(
+            QtGui.QIcon.fromTheme('bookmarks-organize'), '&Bookmarks')
+        self.view_bookmarks_action.setShortcut('Ctrl+B')
+        self.view_bookmarks_action.setCheckable(True)
+        self.view_bookmarks_action.triggered.connect(self.view_bookmarks)
         menu.addSeparator()
         menu.addAction(QtGui.QIcon.fromTheme('video-television'),
                        '&About', self.show_about)
@@ -104,13 +115,14 @@ class MainWindow(QtWidgets.QWidget):
         Settings.first_run()
         self.load_settings()
         self.thread_pool = QThreadPool()
-
+        
     def load_settings(self):
         self.playlist_addr = Settings.settings.value('playlist/addr', type=str)
         self.player = Settings.settings.value('player/path', type=str)
         self.options = Settings.settings.value('player/options', type=str)
         self.keep_single = Settings.settings.value('player/single', type=bool)
         self.guide_addr = Settings.settings.value('guide/addr', type=str)
+        self.bookmarks = Settings.settings.value('main/bookmarks', type=list)
 
     def refresh_forced(self):
         self.folded = False
@@ -124,6 +136,7 @@ class MainWindow(QtWidgets.QWidget):
         self.thread_pool.start(list_worker)
 
     def refresh_list(self):
+        self.view_bookmarks_action.setChecked(False)
         print("getting remote playlist", self.playlist_addr)
         response, status = None, ""
         try:
@@ -148,7 +161,10 @@ class MainWindow(QtWidgets.QWidget):
             elif line.startswith('udp://') or line.startswith('http://')\
                     or line.startswith('file://'):
                 item = QtWidgets.QListWidgetItem(name)
-                item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
+                if id in self.bookmarks:
+                    item.setIcon(QtGui.QIcon.fromTheme('folder-bookmark'))
+                else:
+                    item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
                 item.setData(Qt.UserRole, (line, id))
                 self.ui.listWidget.addItem(item)
         return status
@@ -156,6 +172,7 @@ class MainWindow(QtWidgets.QWidget):
     @pyqtSlot(str, name='on_lineEditFilter_textChanged')
     def filter(self, string):
         self.folded = False
+        self.view_bookmarks_action.setChecked(False)
         self.search_string = string
         for item in self.ui.listWidget.findItems("", Qt.MatchContains):
             item.setHidden(string.lower() not in item.text().lower()
@@ -168,6 +185,7 @@ class MainWindow(QtWidgets.QWidget):
         data = selected_item.data(Qt.UserRole)
         if not data:
             self.folded = False
+            self.view_bookmarks_action.setChecked(False)
             row = self.ui.listWidget.currentRow() + 1
             while row < self.ui.listWidget.count()\
                 and bool(self.ui.listWidget.item(row).data(Qt.UserRole)):
@@ -266,6 +284,7 @@ class MainWindow(QtWidgets.QWidget):
         self.sh = ScheduleHandler(self.guide_addr)
 
     def fold_everything(self):
+        self.view_bookmarks_action.setChecked(False)
         for item in self.ui.listWidget.findItems("", Qt.MatchContains):
             item.setHidden((self.search_string.lower() not in item.text().lower()
                             or not self.folded) and bool(item.data(Qt.UserRole)))
@@ -285,6 +304,18 @@ class MainWindow(QtWidgets.QWidget):
         gv.show()
         self.guide_worker.signals.signal_finished.\
             connect(lambda: gv.reset_handler(self.sh))
+        
+    def bookmark_current(self):
+        item = self.ui.listWidget.currentItem()
+        self.bookmarks.append(item.data(Qt.UserRole)[1])
+        item.setIcon(QtGui.QIcon.fromTheme('folder-bookmark'))
+        
+    def view_bookmarks(self, checked):
+        self.ui.lineEditFilter.clear()
+        self.ui.listWidget.setFocus()
+        for item in self.ui.listWidget.findItems("", Qt.MatchContains):
+            item.setHidden(checked and bool(item.data(Qt.UserRole)) and
+                           item.data(Qt.UserRole)[1] not in self.bookmarks)
 
     def show_about(self):
         QtWidgets.QMessageBox.about(
@@ -295,6 +326,7 @@ class MainWindow(QtWidgets.QWidget):
             "https://bitbucket.org/blaze/tvnao</a></p>")
 
     def quit(self):
+        Settings.settings.setValue('main/bookmarks', self.bookmarks)
         self.hide()
         self.thread_pool.waitForDone()
         self.close()
