@@ -3,6 +3,9 @@
 <file>icons/breeze/index.theme</file>
 <file>icons/breeze/actions/16/application-exit.svg</file>
 <file>icons/breeze/actions/16/configure.svg</file>
+<file>icons/breeze/actions/16/bookmark-new.svg</file>
+<file>icons/breeze/actions/16/bookmark-remove.svg</file>
+<file>icons/breeze/actions/16/bookmarks-organize.svg</file>
 <file>icons/breeze/actions/16/dialog-cancel.svg</file>
 <file>icons/breeze/actions/16/dialog-close.svg</file>
 <file>icons/breeze/actions/16/dialog-ok.svg</file>
@@ -16,5 +19,6 @@
 <file>icons/breeze/devices/22/video-television.svg</file>
 <file>icons/breeze/devices/64/video-television.svg</file>
 <file>icons/breeze/mimetypes/16/video-webm.svg</file>
+<file>icons/breeze/places/16/folder-bookmark.svg</file>
 </qresource>
 </RCC>

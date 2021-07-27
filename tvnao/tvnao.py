@@ -45,7 +45,7 @@ class Worker(QRunnable):
 class MainWindow(QtWidgets.QWidget):
     sh = None
     process = None
-    search_string = ""
+    search_term = ""
     folded = False
     bookmarks = []
 
@@ -76,6 +76,11 @@ class MainWindow(QtWidgets.QWidget):
         bookmark_action.setIcon(QtGui.QIcon.fromTheme('bookmark-new'))
         bookmark_action.triggered.connect(self.bookmark_current)
         self.ui.listWidget.addAction(bookmark_action)
+        unbookmark_action = QtWidgets.QAction('Remove from Bookmarks', self)
+        unbookmark_action.setShortcut('Ctrl+Shift+R')
+        unbookmark_action.setIcon(QtGui.QIcon.fromTheme('bookmark-remove'))
+        unbookmark_action.triggered.connect(self.bookmark_remove)
+        self.ui.listWidget.addAction(unbookmark_action)
         # signal/slot setup
         self.ui.buttonGo.released.connect(self.activate_item)
         self.ui.listWidget.itemDoubleClicked.connect(self.activate_item)
@@ -115,7 +120,7 @@ class MainWindow(QtWidgets.QWidget):
         Settings.first_run()
         self.load_settings()
         self.thread_pool = QThreadPool()
-        
+
     def load_settings(self):
         self.playlist_addr = Settings.settings.value('playlist/addr', type=str)
         self.player = Settings.settings.value('player/path', type=str)
@@ -172,11 +177,17 @@ class MainWindow(QtWidgets.QWidget):
     @pyqtSlot(str, name='on_lineEditFilter_textChanged')
     def filter(self, string):
         self.folded = False
-        self.view_bookmarks_action.setChecked(False)
-        self.search_string = string
+        self.search_term = string
         for item in self.ui.listWidget.findItems("", Qt.MatchContains):
-            item.setHidden(string.lower() not in item.text().lower()
-                           and bool(item.data(Qt.UserRole)))
+            data = item.data(Qt.UserRole)
+            check = self.view_bookmarks_action.isChecked()
+            item.setHidden(
+                (not check and string.lower() not in item.text().lower()
+                 and bool(data))
+                or
+                (check and (string.lower() not in item.text().lower()
+                            or not bool(data)
+                            or (bool(data) and data[1] not in self.bookmarks))))
 
     def activate_item(self):
         selected_item = self.ui.listWidget.currentItem()
@@ -185,13 +196,12 @@ class MainWindow(QtWidgets.QWidget):
         data = selected_item.data(Qt.UserRole)
         if not data:
             self.folded = False
-            self.view_bookmarks_action.setChecked(False)
             row = self.ui.listWidget.currentRow() + 1
             while row < self.ui.listWidget.count()\
                 and bool(self.ui.listWidget.item(row).data(Qt.UserRole)):
                     item = self.ui.listWidget.item(row)
                     item.setHidden(not item.isHidden()
-                                   or self.search_string.lower()
+                                   or self.search_term.lower()
                                    not in item.text().lower())
                     row += 1
             return
@@ -286,7 +296,7 @@ class MainWindow(QtWidgets.QWidget):
     def fold_everything(self):
         self.view_bookmarks_action.setChecked(False)
         for item in self.ui.listWidget.findItems("", Qt.MatchContains):
-            item.setHidden((self.search_string.lower() not in item.text().lower()
+            item.setHidden((self.search_term.lower() not in item.text().lower()
                             or not self.folded) and bool(item.data(Qt.UserRole)))
         self.folded = not self.folded
 
@@ -304,18 +314,35 @@ class MainWindow(QtWidgets.QWidget):
         gv.show()
         self.guide_worker.signals.signal_finished.\
             connect(lambda: gv.reset_handler(self.sh))
-        
+
     def bookmark_current(self):
+        if self.ui.listWidget.count() < 1:
+            return
         item = self.ui.listWidget.currentItem()
-        self.bookmarks.append(item.data(Qt.UserRole)[1])
-        item.setIcon(QtGui.QIcon.fromTheme('folder-bookmark'))
-        
-    def view_bookmarks(self, checked):
-        self.ui.lineEditFilter.clear()
-        self.ui.listWidget.setFocus()
+        data = item.data(Qt.UserRole)
+        if data and data[1] not in self.bookmarks:
+            self.bookmarks.append(data[1])
+            item.setIcon(QtGui.QIcon.fromTheme('folder-bookmark'))
+
+    def bookmark_remove(self):
+        if self.ui.listWidget.count() < 1:
+            return
+        item = self.ui.listWidget.currentItem()
+        data = item.data(Qt.UserRole)
+        if data and data[1] in self.bookmarks:
+            self.bookmarks.remove(data[1])
+            item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
+
+    def view_bookmarks(self, check):
         for item in self.ui.listWidget.findItems("", Qt.MatchContains):
-            item.setHidden(checked and bool(item.data(Qt.UserRole)) and
-                           item.data(Qt.UserRole)[1] not in self.bookmarks)
+            data = item.data(Qt.UserRole)
+            item.setHidden(
+                (not check and self.search_term.lower() not in item.text().lower()
+                 and bool(data))
+                or
+                (check and (self.search_term.lower() not in item.text().lower()
+                            or not bool(data)
+                            or (bool(data) and data[1] not in self.bookmarks))))
 
     def show_about(self):
         QtWidgets.QMessageBox.about(
