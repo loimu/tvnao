@@ -307,7 +307,7 @@ class MainWindow(QtWidgets.QWidget):
 
     def show_guide_viewer(self):
         item = self.ui.listWidget.currentItem()
-        channel = "" if not item.data(Qt.UserRole) else item.text()
+        channel = "" if not item else item.text()
         list = [(x.text(), x.data(Qt.UserRole)[1]) for x in self.ui.listWidget\
                 .findItems("", Qt.MatchContains) if bool(x.data(Qt.UserRole))]
         gv = GuideViewer(self, self.sh, list, channel)

@@ -16,6 +16,8 @@ class GuideViewer(QtWidgets.QDialog):
         self.ui.setupUi(self)
         self.sh = sh
         self.channels = []
+        self.ui.comboBox.addItem("Overview")
+        self.channels.append(None)
         for name, id in channel_list:
             if id not in self.channels:
                 self.ui.comboBox.addItem(name)
@@ -37,6 +39,12 @@ class GuideViewer(QtWidgets.QDialog):
     def show_guide(self):
         index = self.ui.comboBox.currentIndex()
         if index > -1 and self.sh:
-            date = self.ui.dateEdit.date().toString("yyyyMMdd")
-            text = self.sh.get_schedule(date, self.channels[index], True)
-            self.ui.textBrowser.setText(text)
+            if self.channels[index]:
+                date = self.ui.dateEdit.date().toString("yyyyMMdd")
+                text = self.sh.get_schedule(date, self.channels[index], True)
+                self.ui.textBrowser.setText(text)
+            else:
+                channel_map = {}
+                for index, channel in enumerate(self.channels):
+                    channel_map[channel] = self.ui.comboBox.itemText(index)
+                self.ui.textBrowser.setText(self.sh.get_overview(channel_map))

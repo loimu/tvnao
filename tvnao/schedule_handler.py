@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2019 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2021 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
@@ -198,3 +198,19 @@ class ScheduleHandler:
                     text += format("", start, cut(note))
         return "<table>{}</table>".format(
             text if text else "<tr><td>n/a</td></tr>")
+
+    def get_overview(self, channel_map: dict) -> str:
+        text = ""
+        currtime = int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
+        format = lambda w, x, y, z:\
+            "<tr><td>{}</td><td><b>{}:{}..{}:{}</b></td>"\
+            "<td><span>{}</span></td></tr>"\
+            .format(
+            w, str(x)[-6:-4], str(x)[-4:-2], str(y)[-6:-4], str(y)[-4:-2], z)
+        cut = lambda x: x if len(x) < 65 else x[:x.rfind('.', 0, 65)]
+        for (channel, start, stop, note) in self.c.execute(
+                "SELECT channel, start, stop, desc FROM program "
+                "WHERE start < ? AND stop > ? ORDER BY start DESC, stop ASC;",
+                (currtime, currtime)):
+            text += format(channel_map[channel], start, stop, cut(note))
+        return "<table>{}</table>".format(text)
