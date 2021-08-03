@@ -8,6 +8,7 @@ from subprocess import Popen, DEVNULL
 import datetime
 import signal
 import re
+import logging
 
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal,
@@ -53,6 +54,7 @@ class MainWindow(QtWidgets.QWidget):
         super(MainWindow, self).__init__()
         self.ui = Ui_Form()
         self.ui.setupUi(self)
+        logging.getLogger().setLevel(logging.DEBUG)
         if not QtGui.QIcon.hasThemeIcon('video-television'):
             QtGui.QIcon.setThemeName("breeze")
         # actions setup
@@ -148,24 +150,28 @@ class MainWindow(QtWidgets.QWidget):
         self.thread_pool.start(list_worker)
 
     def refresh_list(self):
+        playlist, status, lists, offset, response = "", [], [], 0, None
         self.view_bookmarks_action.setChecked(False)
-        print("getting remote playlist", self.playlist_addr)
-        response, status = None, ""
-        try:
-            response = request.urlopen(self.playlist_addr)
-        except error.URLError as e:
-            status = str(e.reason)
-        except ValueError as e:
-            status = str(e)
-        playlist = response.read().decode('utf-8') if response else ""
-        playlist += self.append_local_file()
+        if not self.playlist_addr:
+            self.playlist_addr = sys.argv[1] if len(sys.argv) > 1 else ""
+            offset = 1
+        lists = [self.playlist_addr] +\
+            (sys.argv[1 + offset:] if len(sys.argv) > 1 + offset else [])
+        for list in lists:
+            logging.info(f'getting remote playlist {list}')
+            try:
+                response = request.urlopen(list)
+            except error.URLError as e:
+                status.append(str(e.reason))
+            except ValueError as e:
+                status.append(str(e))
+            playlist += response.read().decode('utf-8') if response else ""
         counter = 0
         for line in playlist.splitlines():
             if line.startswith('#EXTM3U'):
                 if not self.guide_addr:
                     match = re.match(r".*url-tvg=\"(.*?)\".*", line)
                     self.guide_addr = match.group(1) if match else ""
-                    print(match.group(1))
             elif line.startswith('#EXTINF'):
                 counter += 1
                 name = "{}. {}".format(counter, line.split(',')[1])
@@ -184,7 +190,7 @@ class MainWindow(QtWidgets.QWidget):
                     item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
                 item.setData(Qt.UserRole, (line, id))
                 self.ui.listWidget.addItem(item)
-        return status
+        return ' '.join(status)
 
     @pyqtSlot(str, name='on_lineEditFilter_textChanged')
     def filter(self, string):
@@ -210,12 +216,11 @@ class MainWindow(QtWidgets.QWidget):
             self.folded = False
             row = self.ui.listWidget.currentRow() + 1
             while row < self.ui.listWidget.count()\
-                and bool(self.ui.listWidget.item(row).data(Qt.UserRole)):
-                    item = self.ui.listWidget.item(row)
-                    item.setHidden(not item.isHidden()
-                                   or self.search_term.lower()
-                                   not in item.text().lower())
-                    row += 1
+                    and bool(self.ui.listWidget.item(row).data(Qt.UserRole)):
+                item = self.ui.listWidget.item(row)
+                item.setHidden(not item.isHidden() or self.search_term.lower()
+                               not in item.text().lower())
+                row += 1
             return
         command = [self.player]
         if self.player.count('mpv'):
@@ -238,8 +243,8 @@ class MainWindow(QtWidgets.QWidget):
             return
         self.process = Popen(
             command, stdin=DEVNULL, stdout=DEVNULL, stderr=DEVNULL)
-        print("running process with pid:",
-              str(self.process.pid), "\n  ", str(command))
+        logging.debug("running process with pid:{}\n  {}".format(
+            str(self.process.pid), str(command)))
 
     def show_hide_guide(self):
         if self.ui.guideBrowser.isHidden():
@@ -284,14 +289,6 @@ class MainWindow(QtWidgets.QWidget):
         self.ui.guideFullButton.setChecked(False)
         self.update_guide()
 
-    def append_local_file(self):
-        contents = ""
-        for file in sys.argv[1:]:
-            if path.isfile(file):
-                with open(file, 'r') as local_playlist:
-                    contents += local_playlist.read()
-        return contents
-
     def copy_to_clipboard(self):
         data = self.ui.listWidget.currentItem().data(Qt.UserRole)
         if bool(data):
@@ -320,7 +317,7 @@ class MainWindow(QtWidgets.QWidget):
     def show_guide_viewer(self):
         item = self.ui.listWidget.currentItem()
         channel = "" if not item else item.text()
-        list = [(x.text(), x.data(Qt.UserRole)[1]) for x in self.ui.listWidget\
+        list = [(x.text(), x.data(Qt.UserRole)[1]) for x in self.ui.listWidget
                 .findItems("", Qt.MatchContains) if bool(x.data(Qt.UserRole))]
         gv = GuideViewer(self, self.sh, list, channel)
         gv.show()
@@ -372,8 +369,8 @@ class MainWindow(QtWidgets.QWidget):
 
 
 def main():
-    if sys.hexversion < 0x030500f0:
-        print("E: python version is too old, 3.5 or higher needed")
+    if sys.hexversion < 0x030600f0:
+        logging.error("E: python version is too old, 3.6 or higher needed")
         sys.exit(1)
     if 'linux' in sys.platform:
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)

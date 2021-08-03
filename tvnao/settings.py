@@ -25,7 +25,6 @@ class SettingsHelper():
     def first_run(self):
         if bool(self.settings.value('tvnao/configured_1')):
             return
-        print('adding config options...')
         for entry in self.defaults:
             self.settings.setValue(entry, self.defaults[entry])
         self.settings.setValue('player/path', self.detect_player())

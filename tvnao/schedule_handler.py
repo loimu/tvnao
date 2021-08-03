@@ -7,6 +7,7 @@ import struct
 import datetime
 import sqlite3
 import zipfile
+import logging
 from urllib import request, error
 from typing import List
 import encodings.idna
@@ -44,7 +45,6 @@ class ScheduleHandler:
         prefix = ""
         if 'win' in os.sys.platform:
             prefix = os.path.expandvars("%LOCALAPPDATA%\\tvnao\\")
-            print(prefix)
         if 'linux' in os.sys.platform:
             prefix = os.path.expanduser(r"~/.cache/tvnao/")
         if prefix and not os.path.exists(prefix):
@@ -55,14 +55,14 @@ class ScheduleHandler:
     def _download_file(self, link: str, filename: str) -> bool:
         if not link:
             return False
-        print("downloading file", link)
+        logging.info(f'downloading file {link}')
         try:
             response = request.urlopen(link)
         except error.URLError as e:
-            print("Connection error:", str(e.reason))
+            logging.error("Connection error: {}".format(str(e.reason)))
             return False
         except ValueError as e:
-            print("Connection error:", str(e))
+            logging.error("Connection error: {}".format(str(e)))
             return False
         headers = dict(response.getheaders())
         if headers['Content-Type'] != 'application/zip':
@@ -72,20 +72,20 @@ class ScheduleHandler:
         if os.path.exists(jtv_check_file):
             with open(jtv_check_file, 'r') as file:
                 if file.read() == modified and os.path.exists(self.jtv_file):
-                    print(filename, "is up to date")
+                    logging.info(f'{filename} is up to date')
                     return False
         with open(jtv_check_file, 'w') as file:
             file.write(modified)
         with open(filename, 'wb') as file:
             file.write(response.read())
         if os.path.getsize(filename) < int(headers['Content-Length']):
-            print("Wrong File Size")
+            logging.error("Wrong file size")
             os.remove(jtv_check_file)
             return False
         return True
 
     def _create_database(self) -> None:
-        print("creating database", self.dbname)
+        logging.info(f'creating database {self.dbname}')
         self.c.execute("CREATE TABLE program "
                        "(channel text, start integer, stop integer, desc text,"
                        " primary key(channel, stop))")
@@ -124,18 +124,18 @@ class ScheduleHandler:
         return schedules
 
     def _flush_database(self) -> None:
-        print("flushing database", self.dbname)
+        logging.info(f'flushing database {self.dbname}')
         try:
             self.c.execute("DELETE FROM program")
             self.db.commit()
         except sqlite3.Error as e:
-            print("Database Error:", e)
+            logging.error(f'Database error: {e}')
             os.remove(self.dbname)
             return
         self.c.execute("VACUUM")
 
     def _add_to_database(self) -> None:
-        print("writing into database", self.dbname)
+        logging.info(f'writing into database {self.dbname}')
         archive = zipfile.ZipFile(self.jtv_file, 'r')
         for filename in archive.namelist():
             if filename.endswith(".pdt"):
@@ -148,7 +148,7 @@ class ScheduleHandler:
                     continue
                 titles = archive.read(filename)
                 if titles[0:26] != b'JTV 3.x TV Program Data\n\n\n':
-                    print("invalid JTV format")
+                    logging.warn("invalid JTV format")
                     continue
                 channel_titles = self._parse_titles(titles)
                 schedules = archive.read(filename[0:-4] + ".ndx")
