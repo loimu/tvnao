@@ -147,7 +147,7 @@ class ScheduleHandler:
                 if channel_id.isdigit():
                     continue
                 titles = archive.read(filename)
-                if titles[0:26] != b"JTV 3.x TV Program Data\n\n\n":
+                if titles[0:26] != b'JTV 3.x TV Program Data\n\n\n':
                     print("invalid JTV format")
                     continue
                 channel_titles = self._parse_titles(titles)

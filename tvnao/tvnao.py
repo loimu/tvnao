@@ -14,7 +14,7 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal,
                           QObject, QThreadPool, QRunnable, Qt)
 
 from .tvnao_widget import Ui_Form
-from .settings import Settings
+from .settings import SettingsHelper, SettingsDialog
 from .schedule_handler import ScheduleHandler
 from .guide_viewer import GuideViewer
 from .tvnao_rc import *
@@ -117,17 +117,23 @@ class MainWindow(QtWidgets.QWidget):
         QtWidgets.QScroller.grabGesture(
             self.ui.listWidget, QtWidgets.QScroller.TouchGesture)
         # init
-        Settings.first_run()
+        self.settings_helper = SettingsHelper()
+        self.settings = self.settings_helper.get_settings()
+        self.settings_helper.first_run()
         self.load_settings()
         self.thread_pool = QThreadPool()
 
+    def show(self):
+        super(MainWindow, self).show()
+        self.refresh_list_wrapper()
+
     def load_settings(self):
-        self.playlist_addr = Settings.settings.value('playlist/addr', type=str)
-        self.player = Settings.settings.value('player/path', type=str)
-        self.options = Settings.settings.value('player/options', type=str)
-        self.keep_single = Settings.settings.value('player/single', type=bool)
-        self.guide_addr = Settings.settings.value('guide/addr', type=str)
-        self.bookmarks = Settings.settings.value('main/bookmarks', type=list)
+        self.playlist_addr = self.settings.value('playlist/addr', type=str)
+        self.player = self.settings.value('player/path', type=str)
+        self.options = self.settings.value('player/options', type=str)
+        self.keep_single = self.settings.value('player/single', type=bool)
+        self.guide_addr = self.settings.value('guide/addr', type=str)
+        self.bookmarks = self.settings.value('main/bookmarks', type=list)
 
     def refresh_forced(self):
         self.folded = False
@@ -136,6 +142,7 @@ class MainWindow(QtWidgets.QWidget):
 
     def refresh_list_wrapper(self):
         list_worker = Worker(self.refresh_list)
+        list_worker.signals.signal_finished.connect(self.load_guide_wrapper)
         list_worker.signals.signal_error.connect(
             lambda x: QtWidgets.QMessageBox.warning(self, "Network Error", x))
         self.thread_pool.start(list_worker)
@@ -154,7 +161,12 @@ class MainWindow(QtWidgets.QWidget):
         playlist += self.append_local_file()
         counter = 0
         for line in playlist.splitlines():
-            if line.startswith('#EXTINF'):
+            if line.startswith('#EXTM3U'):
+                if not self.guide_addr:
+                    match = re.match(r".*url-tvg=\"(.*?)\".*", line)
+                    self.guide_addr = match.group(1) if match else ""
+                    print(match.group(1))
+            elif line.startswith('#EXTINF'):
                 counter += 1
                 name = "{}. {}".format(counter, line.split(',')[1])
                 match = re.match(r".*tvg-(id|name)=(.*?)(\s|,).*", line)
@@ -301,7 +313,7 @@ class MainWindow(QtWidgets.QWidget):
         self.folded = not self.folded
 
     def show_settings(self):
-        settings_dialog = Settings(self)
+        settings_dialog = SettingsDialog(self, self.settings_helper)
         settings_dialog.show()
         settings_dialog.destroyed.connect(self.load_settings)
 
@@ -353,7 +365,7 @@ class MainWindow(QtWidgets.QWidget):
             "https://bitbucket.org/blaze/tvnao</a></p>")
 
     def quit(self):
-        Settings.settings.setValue('main/bookmarks', self.bookmarks)
+        self.settings.setValue('main/bookmarks', self.bookmarks)
         self.hide()
         self.thread_pool.waitForDone()
         self.close()
@@ -369,6 +381,4 @@ def main():
     tv_widget = MainWindow()
     tv_widget.setWindowIcon(QtGui.QIcon.fromTheme('video-television'))
     tv_widget.show()
-    tv_widget.refresh_list_wrapper()
-    tv_widget.load_guide_wrapper()
     sys.exit(app.exec_())
