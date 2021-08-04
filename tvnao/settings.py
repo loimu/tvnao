@@ -14,7 +14,7 @@ from .settings_dialog import Ui_Dialog
 class SettingsHelper():
     settings = QSettings('tvnao', 'tvnao')
     defaults = {
-        'playlist/addr':    'http://iptv.isp.domain/iptv_playlist.m3u',
+        'playlist/addr':    '',
         'player/options':   '--network-timeout=60 --no-ytdl '
                             '--force-window=immediate --no-resume-playback',
         'player/single':    False,
@@ -73,7 +73,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.settings.setValue('playlist/addr', self.ui.playlistAddr.text())
         self.settings.setValue('player/path', self.ui.playerPath.text())
         self.settings.setValue('player/options', self.ui.playerOptions.text())
-        self.settings.setValue('player/single',self.ui.playerSingle.isChecked())
+        self.settings.setValue('player/single', self.ui.playerSingle.isChecked())
         self.settings.setValue('guide/addr', self.ui.guideAddr.text())
         self.destroyed.emit()
 

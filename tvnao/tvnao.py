@@ -155,10 +155,15 @@ class MainWindow(QtWidgets.QWidget):
         if not self.playlist_addr:
             self.playlist_addr = sys.argv[1] if len(sys.argv) > 1 else ""
             offset = 1
+        if not self.playlist_addr:
+            return ("Please give a playlist address, either through settings "
+                    "or as an application argument.")
         lists = [self.playlist_addr] +\
             (sys.argv[1 + offset:] if len(sys.argv) > 1 + offset else [])
         for list in lists:
             logging.info(f'getting remote playlist {list}')
+            if not list.startswith('http'):
+                list = "file://" + list
             try:
                 response = request.urlopen(list)
             except error.URLError as e:

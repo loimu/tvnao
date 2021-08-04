@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --with python3
+
+override_dh_auto_install:
+	python3 setup.py install --root=debian/tvnao --install-layout=deb --install-lib=/usr/share/tvnao --install-scripts=/usr/share/tvnao/tvnao
+	mv debian/tvnao/usr/share/tvnao/tvnao/tvnao debian/tvnao/usr/share/tvnao/tvnao-launch
+
+override_dh_auto_build:

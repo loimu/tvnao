@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=tvnao
+Comment=a tool for watching IP TV, shows TV guide
+Exec=tvnao
+Icon=video-television
+Terminal=false
+Type=Application
+Categories=Qt;KDE;Multimedia;
+StartupNotify=true
