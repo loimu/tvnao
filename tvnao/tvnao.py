@@ -170,14 +170,14 @@ class MainWindow(QtWidgets.QWidget):
         for line in playlist.splitlines():
             if line.startswith('#EXTM3U'):
                 if not self.guide_addr:
-                    match = re.match(r".*url-tvg=\"(.*?)\".*", line)
-                    self.guide_addr = match.group(1) if match else ""
+                    match = re.match(r'.*url-tvg=([^\s,]*).*', line)
+                    self.guide_addr = match.group(1).strip('"') if match else ""
             elif line.startswith('#EXTINF'):
                 counter += 1
                 name = "{}. {}".format(counter, line.split(',')[1])
-                match = re.match(r".*tvg-(id|name)=(.*?)(\s|,).*", line)
-                id = match.group(2) if match else None
-                title = re.match(r".*group-title=\"(.+?)\".*", line)
+                match = re.match(r'.*tvg-(?:id|name)=([^\s,]*).*', line)
+                id = match.group(1).strip('"') if match else None
+                title = re.match(r'.*group-title=\"?([^\",]*).*', line)
                 if title:
                     item = QtWidgets.QListWidgetItem(title.group(1))
                     self.ui.listWidget.addItem(item)
