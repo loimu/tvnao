@@ -1,10 +1,10 @@
 Source: tvnao
-Maintainer: Your Name <address@example.org>
+Maintainer: blaze <blaze@vivaldi.net>
 Section: python
 Priority: optional
 Build-Depends: dh-python, python3-setuptools, python3, debhelper (>= 11), python-minimal, python-setuptools
 Standards-Version: 4.5.0
-Homepage: https://github.com/loimu/tvnao
+Homepage: https://launchpad.net/tvnao
 
 Package: tvnao
 Architecture: all

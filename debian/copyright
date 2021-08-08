@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: tvnao
-Source: https://github.com/loimu/tvnao
+Source: https://launchpad.net/tvnao
 
 Files: *
 Copyright: 2016-2021 blaze <blaze@vivaldi.net>
