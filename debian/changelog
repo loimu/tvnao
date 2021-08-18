@@ -1,4 +1,11 @@
-tvnao (0.12.1-0) UNRELEASED; urgency=medium
+tvnao (0.12.2-0) UNRELEASED; urgency=medium
+
+  * New upstream release
+    - minor fix
+
+ -- blaze <blaze@vivaldi.net>  Wed, 18 Aug 2021 23:02:32 +0300
+
+tvnao (0.12.1-0) sid; urgency=medium
 
   * New upstream release
 

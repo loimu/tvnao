@@ -212,5 +212,6 @@ class ScheduleHandler:
                 "SELECT channel, start, stop, desc FROM program "
                 "WHERE start < ? AND stop > ? ORDER BY start DESC, stop ASC;",
                 (currtime, currtime)):
-            text += format(channel_map[channel], start, stop, cut(note))
+            if channel in channel_map:
+                text += format(channel_map[channel], start, stop, cut(note))
         return "<table>{}</table>".format(text)
