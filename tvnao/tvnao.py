@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2021 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2023 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
@@ -10,9 +10,10 @@ import signal
 import re
 import logging
 
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal,
                           QObject, QThreadPool, QRunnable, Qt)
+from PyQt5.QtGui import QIcon, QPalette
 
 from .tvnao_widget import Ui_Form
 from .settings import SettingsHelper, SettingsDialog
@@ -55,8 +56,8 @@ class MainWindow(QtWidgets.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
         logging.getLogger().setLevel(logging.DEBUG)
-        if not QtGui.QIcon.hasThemeIcon('video-television'):
-            QtGui.QIcon.setThemeName("breeze")
+        if not QIcon.hasThemeIcon('video-television'):
+            QIcon.setThemeName("breeze")
         # actions setup
         clear_action = QtWidgets.QAction(self)
         clear_action.setShortcut('Esc')
@@ -70,17 +71,17 @@ class MainWindow(QtWidgets.QWidget):
         self.addActions([clear_action, fold_action, search_action])
         copy_action = QtWidgets.QAction('Copy address', self)
         copy_action.setShortcut('Ctrl+Shift+C')
-        copy_action.setIcon(QtGui.QIcon.fromTheme('edit-copy'))
+        copy_action.setIcon(QIcon.fromTheme('edit-copy'))
         self.ui.listWidget.addAction(copy_action)
         copy_action.triggered.connect(self.copy_to_clipboard)
         bookmark_action = QtWidgets.QAction('Bookmark Current', self)
         bookmark_action.setShortcut('Ctrl+Shift+B')
-        bookmark_action.setIcon(QtGui.QIcon.fromTheme('bookmark-new'))
+        bookmark_action.setIcon(QIcon.fromTheme('bookmark-new'))
         bookmark_action.triggered.connect(self.bookmark_current)
         self.ui.listWidget.addAction(bookmark_action)
         unbookmark_action = QtWidgets.QAction('Remove from Bookmarks', self)
         unbookmark_action.setShortcut('Ctrl+Shift+R')
-        unbookmark_action.setIcon(QtGui.QIcon.fromTheme('bookmark-remove'))
+        unbookmark_action.setIcon(QIcon.fromTheme('bookmark-remove'))
         unbookmark_action.triggered.connect(self.bookmark_remove)
         self.ui.listWidget.addAction(unbookmark_action)
         # signal/slot setup
@@ -92,29 +93,29 @@ class MainWindow(QtWidgets.QWidget):
         self.ui.buttonGo.setShortcut('Return')
         self.ui.buttonGuide.setShortcut('Ctrl+G')
         menu = QtWidgets.QMenu(self)
-        menu.addAction(QtGui.QIcon.fromTheme('view-refresh'),
+        menu.addAction(QIcon.fromTheme('view-refresh'),
                        '&Refresh', self.refresh_forced, 'Ctrl+R')
-        menu.addAction(QtGui.QIcon.fromTheme('view-calendar-list'),
+        menu.addAction(QIcon.fromTheme('view-calendar-list'),
                        '&Viewer', self.show_guide_viewer, 'Ctrl+V')
-        menu.addAction(QtGui.QIcon.fromTheme('configure'),
+        menu.addAction(QIcon.fromTheme('configure'),
                        '&Settings', self.show_settings, 'Ctrl+P')
         self.view_bookmarks_action = menu.addAction(
-            QtGui.QIcon.fromTheme('bookmarks-organize'), '&Bookmarks')
+            QIcon.fromTheme('bookmarks-organize'), '&Bookmarks')
         self.view_bookmarks_action.setShortcut('Ctrl+B')
         self.view_bookmarks_action.setCheckable(True)
         self.view_bookmarks_action.triggered.connect(self.view_bookmarks)
         menu.addSeparator()
-        menu.addAction(QtGui.QIcon.fromTheme('video-television'),
+        menu.addAction(QIcon.fromTheme('video-television'),
                        '&About', self.show_about)
         menu.addSeparator()
-        menu.addAction(QtGui.QIcon.fromTheme('application-exit'),
+        menu.addAction(QIcon.fromTheme('application-exit'),
                        '&Quit', self.quit, 'Ctrl+Q')
         for action in menu.actions():
             action.setShortcutVisibleInContextMenu(True)
         self.ui.listWidget.setContextMenuPolicy(Qt.ActionsContextMenu)
-        self.ui.buttonMenu.setIcon(QtGui.QIcon.fromTheme('video-television'))
+        self.ui.buttonMenu.setIcon(QIcon.fromTheme('video-television'))
         self.ui.buttonMenu.setMenu(menu)
-        self.ui.buttonGo.setIcon(QtGui.QIcon.fromTheme('media-playback-start'))
+        self.ui.buttonGo.setIcon(QIcon.fromTheme('media-playback-start'))
         self.set_guide_visibility(False)
         QtWidgets.QScroller.grabGesture(
             self.ui.listWidget, QtWidgets.QScroller.TouchGesture)
@@ -190,9 +191,9 @@ class MainWindow(QtWidgets.QWidget):
                     or line.startswith('file://'):
                 item = QtWidgets.QListWidgetItem(name)
                 if id in self.bookmarks:
-                    item.setIcon(QtGui.QIcon.fromTheme('folder-bookmark'))
+                    item.setIcon(QIcon.fromTheme('folder-bookmark'))
                 else:
-                    item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
+                    item.setIcon(QIcon.fromTheme('video-webm'))
                 item.setData(Qt.UserRole, (line, id))
                 self.ui.listWidget.addItem(item)
         return ' '.join(status)
@@ -305,7 +306,8 @@ class MainWindow(QtWidgets.QWidget):
         self.thread_pool.start(self.guide_worker)
 
     def load_guide_archive(self):
-        self.sh = ScheduleHandler(self.guide_addr)
+        highlight_color = (self.palette().color(QPalette().Link)).name()
+        self.sh = ScheduleHandler(self.guide_addr, highlight_color)
 
     def fold_everything(self):
         self.view_bookmarks_action.setChecked(False)
@@ -336,7 +338,7 @@ class MainWindow(QtWidgets.QWidget):
         data = item.data(Qt.UserRole)
         if data and data[1] not in self.bookmarks:
             self.bookmarks.append(data[1])
-            item.setIcon(QtGui.QIcon.fromTheme('folder-bookmark'))
+            item.setIcon(QIcon.fromTheme('folder-bookmark'))
 
     def bookmark_remove(self):
         if self.ui.listWidget.count() < 1:
@@ -345,7 +347,7 @@ class MainWindow(QtWidgets.QWidget):
         data = item.data(Qt.UserRole)
         if data and data[1] in self.bookmarks:
             self.bookmarks.remove(data[1])
-            item.setIcon(QtGui.QIcon.fromTheme('video-webm'))
+            item.setIcon(QIcon.fromTheme('video-webm'))
 
     def view_bookmarks(self, check):
         for item in self.ui.listWidget.findItems("", Qt.MatchContains):
@@ -361,7 +363,7 @@ class MainWindow(QtWidgets.QWidget):
     def show_about(self):
         QtWidgets.QMessageBox.about(
             self, "About tvnao",
-            "<p><b>tvnao</b> v0.12.2 &copy; 2016-2021 Blaze</p>"
+            "<p><b>tvnao</b> v0.12.2 &copy; 2016-2023 Blaze</p>"
             "<p>&lt;blaze@vivaldi.net&gt;</p>"
             "<p><a href=\"https://launchpad.net/tvnao\">"
             "https://launchpad.net/tvnao</a></p>")
@@ -381,6 +383,6 @@ def main():
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)
     app = QtWidgets.QApplication(sys.argv)
     tv_widget = MainWindow()
-    tv_widget.setWindowIcon(QtGui.QIcon.fromTheme('video-television'))
+    tv_widget.setWindowIcon(QIcon.fromTheme('video-television'))
     tv_widget.show()
     sys.exit(app.exec_())

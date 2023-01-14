@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2021 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2023 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
@@ -19,9 +19,11 @@ class ScheduleHandler:
     db = None
 
     def __init__(self, schedule_addr: str,
+                 highlight_color: str = 'indigo',
                  offset: float = 0.0,
                  tz: datetime.tzinfo = None):
         self.schedule_addr = schedule_addr
+        self.highlight_color = highlight_color
         self.offset = offset
         self.tz = tz
         self._set_prefix()
@@ -173,6 +175,7 @@ class ScheduleHandler:
     def get_schedule(self,
                      date: str, channel: str, full_day: bool = False) -> str:
         text = ""
+        curr_color = self.highlight_color
         currtime = int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
         format = lambda x, y, z:\
             "<tr{}><td><b>{}:{}</b></td><td><span>{}</span></td></tr>"\
@@ -183,7 +186,7 @@ class ScheduleHandler:
                     "SELECT start, desc FROM program "
                     "WHERE channel = ? AND stop > ? LIMIT 5;",
                     (channel, currtime)):
-                style = " style='color:indigo;'" if currtime > start else ""
+                style = f" style='color:{curr_color};'" if currtime > start else ""
                 text += format(style, start, note)
         else:
             for (start, stop, note) in self.c.execute(
@@ -193,7 +196,7 @@ class ScheduleHandler:
                 if currtime > start and currtime > stop:
                     text += format(" style='color:grey;'", start, cut(note))
                 elif currtime > start and currtime < stop:
-                    text += format(" style='color:indigo;'", start, note)
+                    text += format(f" style='color:{curr_color};'", start, note)
                 else:
                     text += format("", start, cut(note))
         return "<table>{}</table>".format(
@@ -204,14 +207,14 @@ class ScheduleHandler:
         currtime = int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
         format = lambda w, x, y, z:\
             "<tr><td>{}</td><td><b>{}:{}..{}:{}</b></td>"\
-            "<td><span>{}</span></td></tr>"\
+            "<td><span>{}</span></td></tr>\r\n"\
             .format(
-            w, str(x)[-6:-4], str(x)[-4:-2], str(y)[-6:-4], str(y)[-4:-2], z)
+                w, str(x)[-6:-4], str(x)[-4:-2], str(y)[-6:-4], str(y)[-4:-2], z)
         cut = lambda x: x if len(x) < 65 else x[:x.rfind('.', 0, 65)]
         for (channel, start, stop, note) in self.c.execute(
                 "SELECT channel, start, stop, desc FROM program "
                 "WHERE start < ? AND stop > ? ORDER BY start DESC, stop ASC;",
-                (currtime, currtime)):
+                (currtime + 1000, currtime)):
             if channel in channel_map:
                 text += format(channel_map[channel], start, stop, cut(note))
-        return "<table>{}</table>".format(text)
+        return "<table>\r\n{}</table>".format(text)

@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2021 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2023 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
@@ -28,6 +28,10 @@ class GuideViewer(QtWidgets.QDialog):
         self.ui.nextButton.released.connect(lambda: self.step(1))
         self.ui.dateEdit.dateChanged.connect(self.show_guide)
         self.ui.dateEdit.setDate(QtCore.QDate().currentDate())
+        refresh_action = QtWidgets.QAction(self)
+        refresh_action.setShortcut('Ctrl+R')
+        refresh_action.triggered.connect(self.show_guide)
+        self.addAction(refresh_action)
 
     def reset_handler(self, sh):
         self.sh = sh
