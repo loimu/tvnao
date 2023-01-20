@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2021 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2023 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
@@ -19,6 +19,8 @@ class SettingsHelper():
                             '--force-window=immediate --no-resume-playback',
         'player/single':    False,
         'guide/addr':       '',
+        'timeshift/host':   '',
+        'timeshift/port':   '',
         'tvnao/configured_1': True
     }
 
@@ -45,7 +47,7 @@ class SettingsDialog(QtWidgets.QDialog):
     def __init__(self,
                  parent: QtWidgets.QWidget, settings_helper: SettingsHelper):
         super(SettingsDialog, self).__init__(parent)
-        self.sh = settings_helper
+        self.helper = settings_helper
         self.settings = settings_helper.get_settings()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
@@ -79,8 +81,8 @@ class SettingsDialog(QtWidgets.QDialog):
 
     @pyqtSlot()
     def on_defaultsButton_released(self):
-        self.ui.playlistAddr.setText(self.sh.defaults['playlist/addr'])
-        self.ui.playerPath.setText(self.sh.detect_player())
-        self.ui.playerOptions.setText(self.sh.defaults['player/options'])
-        self.ui.playerSingle.setChecked(self.sh.defaults['player/single'])
-        self.ui.guideAddr.setText(self.sh.defaults['guide/addr'])
+        self.ui.playlistAddr.setText(self.helper.defaults['playlist/addr'])
+        self.ui.playerPath.setText(self.helper.detect_player())
+        self.ui.playerOptions.setText(self.helper.defaults['player/options'])
+        self.ui.playerSingle.setChecked(self.helper.defaults['player/single'])
+        self.ui.guideAddr.setText(self.helper.defaults['guide/addr'])

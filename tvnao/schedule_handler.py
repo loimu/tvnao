@@ -126,9 +126,19 @@ class ScheduleHandler:
         return schedules
 
     def _flush_database(self) -> None:
+        """
+            Flushes entries older than five days or newer than yesterday,
+            it is in fact fragile because some JTV archives may include
+            records previous to current date
+            FIXME: additional input filtering while adding records is required
+        """
         logging.info(f'flushing database {self.dbname}')
+        today = datetime.date.today()
+        past_date = (today - datetime.timedelta(days=5)).strftime("%Y%m%d000000")
+        curr_date = today.strftime("%Y%m%d000000")
         try:
-            self.c.execute("DELETE FROM program")
+            self.c.execute("DELETE FROM program WHERE start < ? AND start > ?",
+                           (past_date, curr_date))
             self.db.commit()
         except sqlite3.Error as e:
             logging.error(f'Database error: {e}')
@@ -172,6 +182,9 @@ class ScheduleHandler:
         archive.close()
         self.db.commit()
 
+    def _cut(self, text):
+        return text if len(text) < 65 else text[:text.rfind('.', 0, 65)]
+
     def get_schedule(self,
                      date: str, channel: str, full_day: bool = False) -> str:
         text = ""
@@ -180,7 +193,6 @@ class ScheduleHandler:
         format = lambda x, y, z:\
             "<tr{}><td><b>{}:{}</b></td><td><span>{}</span></td></tr>"\
             .format(x, str(y)[-6:-4], str(y)[-4:-2], z)
-        cut = lambda x: x if len(x) < 65 else x[:x.rfind('.', 0, 65)]
         if not full_day:
             for (start, note) in self.c.execute(
                     "SELECT start, desc FROM program "
@@ -192,13 +204,13 @@ class ScheduleHandler:
             for (start, stop, note) in self.c.execute(
                     "SELECT start, stop, desc FROM program "
                     "WHERE channel = ? AND stop > ? AND start < ?;",
-                    (channel, str(date)+'000000', str(date)+'235900')):
+                    (channel, date + '000000', date + '235900')):
                 if currtime > start and currtime > stop:
-                    text += format(" style='color:grey;'", start, cut(note))
+                    text += format(" style='color:grey;'", start, self._cut(note))
                 elif currtime > start and currtime < stop:
                     text += format(f" style='color:{curr_color};'", start, note)
                 else:
-                    text += format("", start, cut(note))
+                    text += format("", start, self._cut(note))
         return "<table>{}</table>".format(
             text if text else "<tr><td>n/a</td></tr>")
 
@@ -210,11 +222,21 @@ class ScheduleHandler:
             "<td><span>{}</span></td></tr>\r\n"\
             .format(
                 w, str(x)[-6:-4], str(x)[-4:-2], str(y)[-6:-4], str(y)[-4:-2], z)
-        cut = lambda x: x if len(x) < 65 else x[:x.rfind('.', 0, 65)]
         for (channel, start, stop, note) in self.c.execute(
                 "SELECT channel, start, stop, desc FROM program "
                 "WHERE start < ? AND stop > ? ORDER BY start DESC, stop ASC;",
                 (currtime + 1000, currtime)):
             if channel in channel_map:
-                text += format(channel_map[channel], start, stop, cut(note))
+                text += format(channel_map[channel], start, stop, self._cut(note))
         return "<table>\r\n{}</table>".format(text)
+
+    def get_timeshift_list(self, date: str, channel: str):
+        currtime = int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
+        for (start, note) in self.c.execute(
+            "SELECT start, desc FROM program "
+            "WHERE channel = ? AND stop > ? AND (start < ? AND start < ?);",
+                (channel, date + '000000', date + '235900', currtime)):
+            yield (start,
+                   "{}:{}".format(str(start)[-6:-4], str(start)[-4:-2]),
+                   self._cut(note)
+                   )

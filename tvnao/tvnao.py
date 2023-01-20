@@ -19,6 +19,7 @@ from .tvnao_widget import Ui_Form
 from .settings import SettingsHelper, SettingsDialog
 from .schedule_handler import ScheduleHandler
 from .guide_viewer import GuideViewer
+from .timeshift import Timeshift
 from .tvnao_rc import *
 
 
@@ -68,7 +69,10 @@ class MainWindow(QtWidgets.QWidget):
         search_action = QtWidgets.QAction(self)
         search_action.setShortcut('Ctrl+S')
         search_action.triggered.connect(self.ui.lineEditFilter.setFocus)
-        self.addActions([clear_action, fold_action, search_action])
+        timeshift_action = QtWidgets.QAction(self)
+        timeshift_action.setShortcut('Ctrl+T')
+        timeshift_action.triggered.connect(self.show_timeshift_dialog)
+        self.addActions([clear_action, fold_action, search_action, timeshift_action])
         copy_action = QtWidgets.QAction('Copy address', self)
         copy_action.setShortcut('Ctrl+Shift+C')
         copy_action.setIcon(QIcon.fromTheme('edit-copy'))
@@ -228,12 +232,16 @@ class MainWindow(QtWidgets.QWidget):
                                not in item.text().lower())
                 row += 1
             return
+        self.play(data[0])
+
+    @pyqtSlot(str)
+    def play(self, url):
         command = [self.player]
         if self.player.count('mpv'):
             command.append('--force-media-title=' +
                            self.ui.listWidget.currentItem().text())
         command += self.options.split()
-        command.append(data[0])
+        command.append(url)
         if self.keep_single and self.process:
             try:
                 if 'win' in sys.platform:
@@ -275,12 +283,13 @@ class MainWindow(QtWidgets.QWidget):
             else:
                 self.ui.guideBrowser.setText("<b>not available</b>")
                 return
-            date = int(datetime.date.today().strftime("%Y%m%d"))
+            date = datetime.date.today()
             if self.ui.guideNextButton.isChecked():
-                date += 1
+                date += datetime.timedelta(days=1)
+            date_str = date.strftime("%Y%m%d")
             all_day = self.ui.guideNextButton.isChecked()\
                 or self.ui.guideFullButton.isChecked()
-            text = self.sh.get_schedule(date, id, all_day)\
+            text = self.sh.get_schedule(date_str, id, all_day)\
                 if self.sh else "loading…"
             self.ui.guideBrowser.setText(text)
             self.ui.guideBrowser.setToolTip(text)
@@ -330,6 +339,16 @@ class MainWindow(QtWidgets.QWidget):
         gv.show()
         self.guide_worker.signals.signal_finished.\
             connect(lambda: gv.reset_handler(self.sh))
+
+    def show_timeshift_dialog(self):
+        if self.ui.listWidget.count() < 1:
+            return
+        data = self.ui.listWidget.currentItem().data(Qt.UserRole)
+        if data:
+            id = data[1]
+        td = Timeshift(self, self.sh, id, self.settings_helper)
+        td.show()
+        td.start_player.connect(self.play)
 
     def bookmark_current(self):
         if self.ui.listWidget.count() < 1:
