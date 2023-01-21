@@ -127,10 +127,7 @@ class ScheduleHandler:
 
     def _flush_database(self) -> None:
         """
-            Flushes entries older than five days or newer than yesterday,
-            it is in fact fragile because some JTV archives may include
-            records previous to current date
-            FIXME: additional input filtering while adding records is required
+            Flushes entries older than five days or newer than yesterday
         """
         logging.info(f'flushing database {self.dbname}')
         today = datetime.date.today()
@@ -149,6 +146,7 @@ class ScheduleHandler:
     def _add_to_database(self) -> None:
         logging.info(f'writing into database {self.dbname}')
         archive = zipfile.ZipFile(self.jtv_file, 'r')
+        today = datetime.date.today().strftime("%Y%m%d000000")
         for filename in archive.namelist():
             if filename.endswith(".pdt"):
                 try:
@@ -166,30 +164,33 @@ class ScheduleHandler:
                 schedules = archive.read(filename[0:-4] + ".ndx")
                 channel_schedules = self._parse_schedule(schedules)
                 i = 0
-                for curr_title in channel_titles:
+                for entry in channel_titles:
                     if i < len(channel_schedules) - 1:
                         time_format = "%Y%m%d%H%M%S"
-                        entry = (channel_id,
-                                 channel_schedules[i].strftime(time_format),
-                                 channel_schedules[i+1].strftime(time_format),
-                                 curr_title)
-                        try:
-                            self.c.execute("INSERT INTO program VALUES (?,?,?,?)",
-                                           entry)
-                            i += 1
-                        except sqlite3.IntegrityError:
-                            pass
+                        start = channel_schedules[i].strftime(time_format)
+                        stop = channel_schedules[i+1].strftime(time_format)
+                        if int(start) >= today:
+                            try:
+                                self.c.execute(
+                                    "INSERT INTO program VALUES (?,?,?,?)",
+                                    (channel_id, start, stop, entry))
+                                i += 1
+                            except sqlite3.IntegrityError:
+                                pass
         archive.close()
         self.db.commit()
 
     def _cut(self, text):
         return text if len(text) < 65 else text[:text.rfind('.', 0, 65)]
 
+    def _get_current_time(self):
+        return int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
+
     def get_schedule(self,
                      date: str, channel: str, full_day: bool = False) -> str:
         text = ""
         curr_color = self.highlight_color
-        currtime = int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
+        curr_time = self._get_current_time()
         format = lambda x, y, z:\
             "<tr{}><td><b>{}:{}</b></td><td><span>{}</span></td></tr>"\
             .format(x, str(y)[-6:-4], str(y)[-4:-2], z)
@@ -197,17 +198,17 @@ class ScheduleHandler:
             for (start, note) in self.c.execute(
                     "SELECT start, desc FROM program "
                     "WHERE channel = ? AND stop > ? LIMIT 5;",
-                    (channel, currtime)):
-                style = f" style='color:{curr_color};'" if currtime > start else ""
+                    (channel, curr_time)):
+                style = f" style='color:{curr_color};'" if curr_time > start else ""
                 text += format(style, start, note)
         else:
             for (start, stop, note) in self.c.execute(
                     "SELECT start, stop, desc FROM program "
                     "WHERE channel = ? AND stop > ? AND start < ?;",
                     (channel, date + '000000', date + '235900')):
-                if currtime > start and currtime > stop:
+                if curr_time > start and curr_time > stop:
                     text += format(" style='color:grey;'", start, self._cut(note))
-                elif currtime > start and currtime < stop:
+                elif curr_time > start and curr_time < stop:
                     text += format(f" style='color:{curr_color};'", start, note)
                 else:
                     text += format("", start, self._cut(note))
@@ -216,7 +217,7 @@ class ScheduleHandler:
 
     def get_overview(self, channel_map: dict) -> str:
         text = ""
-        currtime = int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
+        curr_time = self._get_current_time()
         format = lambda w, x, y, z:\
             "<tr><td>{}</td><td><b>{}:{}..{}:{}</b></td>"\
             "<td><span>{}</span></td></tr>\r\n"\
@@ -225,17 +226,17 @@ class ScheduleHandler:
         for (channel, start, stop, note) in self.c.execute(
                 "SELECT channel, start, stop, desc FROM program "
                 "WHERE start < ? AND stop > ? ORDER BY start DESC, stop ASC;",
-                (currtime + 1000, currtime)):
+                (curr_time + 1000, curr_time)):
             if channel in channel_map:
                 text += format(channel_map[channel], start, stop, self._cut(note))
         return "<table>\r\n{}</table>".format(text)
 
     def get_timeshift_list(self, date: str, channel: str):
-        currtime = int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
+        curr_time = self._get_current_time()
         for (start, note) in self.c.execute(
             "SELECT start, desc FROM program "
             "WHERE channel = ? AND stop > ? AND (start < ? AND start < ?);",
-                (channel, date + '000000', date + '235900', currtime)):
+                (channel, date + '000000', date + '235900', curr_time)):
             yield (start,
                    "{}:{}".format(str(start)[-6:-4], str(start)[-4:-2]),
                    self._cut(note)

@@ -345,10 +345,10 @@ class MainWindow(QtWidgets.QWidget):
             return
         data = self.ui.listWidget.currentItem().data(Qt.UserRole)
         if data:
-            id = data[1]
-        td = Timeshift(self, self.sh, id, self.settings_helper)
-        td.show()
-        td.start_player.connect(self.play)
+            title = self.ui.listWidget.currentItem().text()
+            td = Timeshift(self, self.sh, title, data[1], self.settings_helper)
+            td.show()
+            td.start_player.connect(self.play)
 
     def bookmark_current(self):
         if self.ui.listWidget.count() < 1:
