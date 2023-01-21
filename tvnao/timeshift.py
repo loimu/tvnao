@@ -57,7 +57,12 @@ class Timeshift(QtWidgets.QDialog):
         audio_chan = self.ui.audioSpinBox.value()
         channel_id = self.ui.channelEdit.text()
         if channel_id != self.channel_id:
-            self.replacements[self.channel_id] = channel_id
+            if not len(channel_id):
+                self.replacements.pop(self.channel_id, None)
+                channel_id = self.channel_id
+                self.ui.channelEdit.setText(self.channel_id)
+            else:
+                self.replacements[self.channel_id] = channel_id
         item = self.ui.listWidget.currentItem()
         data = item.data(Qt.UserRole)
         start = datetime.datetime.strptime(str(data[0]), "%Y%m%d%H%M%S")
