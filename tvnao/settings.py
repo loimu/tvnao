@@ -21,6 +21,7 @@ class SettingsHelper():
         'guide/addr':       '',
         'timeshift/host':   '',
         'timeshift/port':   '',
+        'timeshift/repl':   {},
         'tvnao/configured_1': True
     }
 

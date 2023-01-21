@@ -22,9 +22,14 @@ class Timeshift(QtWidgets.QDialog):
         self.channel_id = channel_id
         self.helper = settings_helper
         self.settings = settings_helper.get_settings()
+        self.replacements = self.settings.value('timeshift/repl', type=dict)
         self.ui.listWidget.itemDoubleClicked.connect(self._activate_item)
         self.ui.hostEdit.setText(self.settings.value('timeshift/host', type=str))
         self.ui.portEdit.setText(self.settings.value('timeshift/port', type=str))
+        if channel_id in self.replacements:
+            self.ui.channelEdit.setText(self.replacements[channel_id])
+        else:
+            self.ui.channelEdit.setText(channel_id)
         self.ui.prevButton.released.connect(lambda: self._step(-1))
         self.ui.nextButton.released.connect(lambda: self._step(1))
         self.ui.dateEdit.dateChanged.connect(self._show_guide)
@@ -50,13 +55,17 @@ class Timeshift(QtWidgets.QDialog):
         host = self.ui.hostEdit.text()
         port = self.ui.portEdit.text()
         audio_chan = self.ui.audioSpinBox.value()
+        channel_id = self.ui.channelEdit.text()
+        if channel_id != self.channel_id:
+            self.replacements[self.channel_id] = channel_id
         item = self.ui.listWidget.currentItem()
         data = item.data(Qt.UserRole)
         entry_time = datetime.datetime.strptime(str(data), "%Y%m%d%H%M%S")
         current_time = datetime.datetime.now()
         diff_time = int((current_time - entry_time).total_seconds())
-        self.start_player.emit(f"http://{host}:{port}/{self.channel_id}/tracks-v1a{audio_chan}/timeshift_rel-{diff_time}.m3u8")
+        self.start_player.emit(f"http://{host}:{port}/{channel_id}/tracks-v1a{audio_chan}/timeshift_rel-{diff_time}.m3u8")
 
     def _save_settings(self):
         self.settings.setValue('timeshift/host', self.ui.hostEdit.text())
         self.settings.setValue('timeshift/port', self.ui.portEdit.text())
+        self.settings.setValue('timeshift/repl', self.replacements)
