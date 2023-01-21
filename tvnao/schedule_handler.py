@@ -233,11 +233,11 @@ class ScheduleHandler:
 
     def get_timeshift_list(self, date: str, channel: str):
         curr_time = self._get_current_time()
-        for (start, note) in self.c.execute(
-            "SELECT start, desc FROM program "
+        for (start, stop, note) in self.c.execute(
+            "SELECT start, stop, desc FROM program "
             "WHERE channel = ? AND stop > ? AND (start < ? AND start < ?);",
                 (channel, date + '000000', date + '235900', curr_time)):
-            yield (start,
+            yield (start, stop,
                    "{}:{}".format(str(start)[-6:-4], str(start)[-4:-2]),
                    self._cut(note)
                    )

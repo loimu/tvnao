@@ -45,8 +45,8 @@ class Timeshift(QtWidgets.QDialog):
         self.ui.listWidget.clear()
         date = self.ui.dateEdit.date().toString("yyyyMMdd")
         for entry in self.sh.get_timeshift_list(date, self.channel_id):
-            item = QtWidgets.QListWidgetItem(entry[1] + " " + entry[2])
-            item.setData(Qt.UserRole, entry[0])
+            item = QtWidgets.QListWidgetItem(entry[2] + " " + entry[3])
+            item.setData(Qt.UserRole, (entry[0], entry[1]))
             self.ui.listWidget.addItem(item)
 
     def _activate_item(self):
@@ -60,10 +60,11 @@ class Timeshift(QtWidgets.QDialog):
             self.replacements[self.channel_id] = channel_id
         item = self.ui.listWidget.currentItem()
         data = item.data(Qt.UserRole)
-        entry_time = datetime.datetime.strptime(str(data), "%Y%m%d%H%M%S")
-        current_time = datetime.datetime.now()
-        diff_time = int((current_time - entry_time).total_seconds())
-        self.start_player.emit(f"http://{host}:{port}/{channel_id}/tracks-v1a{audio_chan}/timeshift_rel-{diff_time}.m3u8")
+        start = datetime.datetime.strptime(str(data[0]), "%Y%m%d%H%M%S")
+        stop = datetime.datetime.strptime(str(data[1]), "%Y%m%d%H%M%S")
+        diff_time = int((stop - start).total_seconds())
+        timestamp = int(start.replace().timestamp())
+        self.start_player.emit(f"http://{host}:{port}/{channel_id}/mono-{timestamp}-{diff_time}.m3u8?filter=tracks:v1a{audio_chan}")
 
     def _save_settings(self):
         self.settings.setValue('timeshift/host', self.ui.hostEdit.text())
