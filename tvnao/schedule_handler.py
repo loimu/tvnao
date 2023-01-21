@@ -146,7 +146,7 @@ class ScheduleHandler:
     def _add_to_database(self) -> None:
         logging.info(f'writing into database {self.dbname}')
         archive = zipfile.ZipFile(self.jtv_file, 'r')
-        today = datetime.date.today().strftime("%Y%m%d000000")
+        today = int(datetime.date.today().strftime("%Y%m%d000000"))
         for filename in archive.namelist():
             if filename.endswith(".pdt"):
                 try:
