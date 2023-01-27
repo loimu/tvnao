@@ -127,14 +127,14 @@ class ScheduleHandler:
 
     def _flush_database(self) -> None:
         """
-            Flushes entries older than five days or newer than yesterday
+            Flushes records older than five days or newer than yesterday
         """
         logging.info(f'flushing database {self.dbname}')
         today = datetime.date.today()
         past_date = (today - datetime.timedelta(days=5)).strftime("%Y%m%d000000")
         curr_date = today.strftime("%Y%m%d000000")
         try:
-            self.c.execute("DELETE FROM program WHERE start < ? AND start > ?",
+            self.c.execute("DELETE FROM program WHERE start < ? OR start > ?",
                            (past_date, curr_date))
             self.db.commit()
         except sqlite3.Error as e:
