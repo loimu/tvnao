@@ -132,10 +132,10 @@ class ScheduleHandler:
         logging.info(f'flushing database {self.dbname}')
         today = datetime.date.today()
         past_date = (today - datetime.timedelta(days=5)).strftime("%Y%m%d000000")
-        curr_date = today.strftime("%Y%m%d000000")
+        prev_date = (today - datetime.timedelta(days=1)).strftime("%Y%m%d235900")
         try:
             self.c.execute("DELETE FROM program WHERE start < ? OR start > ?",
-                           (past_date, curr_date))
+                           (past_date, prev_date))
             self.db.commit()
         except sqlite3.Error as e:
             logging.error(f'Database error: {e}')
@@ -169,12 +169,12 @@ class ScheduleHandler:
                         time_format = "%Y%m%d%H%M%S"
                         start = channel_schedules[i].strftime(time_format)
                         stop = channel_schedules[i+1].strftime(time_format)
+                        i += 1
                         if int(start) >= today:
                             try:
                                 self.c.execute(
                                     "INSERT INTO program VALUES (?,?,?,?)",
                                     (channel_id, start, stop, entry))
-                                i += 1
                             except sqlite3.IntegrityError:
                                 pass
         archive.close()
