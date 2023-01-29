@@ -343,7 +343,8 @@ class MainWindow(QtWidgets.QWidget):
     def show_timeshift_dialog(self):
         if self.ui.listWidget.count() < 1:
             return
-        data = self.ui.listWidget.currentItem().data(Qt.UserRole)
+        data = self.ui.listWidget.currentItem().data(Qt.UserRole) \
+            if self.ui.listWidget.currentItem() else None
         if data:
             title = self.ui.listWidget.currentItem().text()
             td = Timeshift(self, self.sh, title, data[1], self.settings_helper)
