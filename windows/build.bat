@@ -7,4 +7,4 @@ del /Q /F /S build dist tvnao.spec
   --paths "%_LIB_PATH%\PyQt5\Qt\bin" ^
   --name="tvnao" --onefile --windowed ^
   "Z:\\tvnao\run.py"
-move "%userprofile%\dist\tvnao.exe" "Z:\\tvnao-x86\tvnao.exe"
+move .\"dist\tvnao.exe" "Z:\\tvnao-x86\tvnao.exe"

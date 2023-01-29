@@ -274,25 +274,24 @@ class MainWindow(QtWidgets.QWidget):
         self.ui.guideNextButton.setVisible(visible)
 
     def update_guide(self):
-        if self.ui.guideBrowser.isVisible():
-            if self.ui.listWidget.count() < 1:
-                return
-            data = self.ui.listWidget.currentItem().data(Qt.UserRole)
-            if data:
-                id = data[1]
-            else:
-                self.ui.guideBrowser.setText("<b>not available</b>")
-                return
+        if not self.ui.guideBrowser.isVisible() \
+                or self.ui.listWidget.count() < 1:
+            return
+        item = self.ui.listWidget.currentItem()
+        data = item.data(Qt.UserRole) if item else None
+        if data:
             date = datetime.date.today()
             if self.ui.guideNextButton.isChecked():
                 date += datetime.timedelta(days=1)
             date_str = date.strftime("%Y%m%d")
             all_day = self.ui.guideNextButton.isChecked()\
                 or self.ui.guideFullButton.isChecked()
-            text = self.sh.get_schedule(date_str, id, all_day)\
+            text = self.sh.get_schedule(date_str, data[1], all_day)\
                 if self.sh else "loading…"
             self.ui.guideBrowser.setText(text)
             self.ui.guideBrowser.setToolTip(text)
+        else:
+            self.ui.guideBrowser.setText("<b>not available</b>")
 
     @pyqtSlot()
     def on_guideFullButton_released(self):
@@ -343,8 +342,8 @@ class MainWindow(QtWidgets.QWidget):
     def show_timeshift_dialog(self):
         if self.ui.listWidget.count() < 1:
             return
-        data = self.ui.listWidget.currentItem().data(Qt.UserRole) \
-            if self.ui.listWidget.currentItem() else None
+        item = self.ui.listWidget.currentItem()
+        data = item.data(Qt.UserRole) if item else None
         if data:
             title = self.ui.listWidget.currentItem().text()
             td = Timeshift(self, self.sh, title, data[1], self.settings_helper)
