@@ -12,7 +12,7 @@ from tvnao.timeshift_dialog import Ui_TimeshiftDialog
 
 
 class Timeshift(QtWidgets.QDialog):
-    start_player = pyqtSignal(str)
+    start_player = pyqtSignal(str, str)
 
     def __init__(self, parent, sh, name, channel_id, settings_helper: SettingsHelper):
         super(Timeshift, self).__init__(parent)
@@ -20,6 +20,7 @@ class Timeshift(QtWidgets.QDialog):
         self.ui.setupUi(self)
         self.sh = sh
         self.channel_id = channel_id
+        self.channel_name = name
         self.helper = settings_helper
         self.settings = settings_helper.get_settings()
         self.replacements = self.settings.value('timeshift/repl', type=dict)
@@ -69,7 +70,9 @@ class Timeshift(QtWidgets.QDialog):
         stop = datetime.datetime.strptime(str(data[1]), "%Y%m%d%H%M%S")
         diff_time = int((stop - start).total_seconds())
         timestamp = int(start.replace().timestamp())
-        self.start_player.emit(f"http://{host}:{port}/{channel_id}/mono-{timestamp}-{diff_time}.m3u8?filter=tracks:v1a{audio_chan}")
+        self.start_player.emit(
+            f"http://{host}:{port}/{channel_id}/mono-{timestamp}-{diff_time}.m3u8?filter=tracks:v1a{audio_chan}",
+            f"{self.channel_name} -- {item.text()}")
 
     def _save_settings(self):
         self.settings.setValue('timeshift/host', self.ui.hostEdit.text())

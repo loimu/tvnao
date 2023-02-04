@@ -234,12 +234,12 @@ class MainWindow(QtWidgets.QWidget):
             return
         self.play(data[0])
 
-    @pyqtSlot(str)
-    def play(self, url):
+    @pyqtSlot(str, str)
+    def play(self, url, title=None):
         command = [self.player]
         if self.player.count('mpv'):
-            command.append('--force-media-title=' +
-                           self.ui.listWidget.currentItem().text())
+            title = title if title else self.ui.listWidget.currentItem().text()
+            command.append('--force-media-title=' + title)
         command += self.options.split()
         command.append(url)
         if self.keep_single and self.process:
