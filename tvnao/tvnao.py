@@ -202,6 +202,13 @@ class MainWindow(QtWidgets.QWidget):
                 self.ui.listWidget.addItem(item)
         return ' '.join(status)
 
+    def set_focus(self):
+        row = self.ui.listWidget.currentRow()
+        if row > 0:
+            if not self.ui.listWidget.isRowHidden(row):
+                item = self.ui.listWidget.item(row)
+                self.ui.listWidget.scrollToItem(item)
+
     @pyqtSlot(str, name='on_lineEditFilter_textChanged')
     def filter(self, string):
         self.folded = False
@@ -216,6 +223,7 @@ class MainWindow(QtWidgets.QWidget):
                 (check and (string.lower() not in item.text().lower()
                             or not bool(data)
                             or (bool(data) and data[1] not in self.bookmarks))))
+        self.set_focus()
 
     def activate_item(self):
         selected_item = self.ui.listWidget.currentItem()
@@ -378,6 +386,7 @@ class MainWindow(QtWidgets.QWidget):
                 (check and (self.search_term.lower() not in item.text().lower()
                             or not bool(data)
                             or (bool(data) and data[1] not in self.bookmarks))))
+        self.set_focus()
 
     def show_about(self):
         QtWidgets.QMessageBox.about(
