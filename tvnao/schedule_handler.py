@@ -21,10 +21,14 @@ class ScheduleHandler:
     def __init__(self, schedule_addr: str,
                  highlight_color: str = 'indigo',
                  offset: float = 0.0,
+                 cached_days_num: int = 5,
                  tz: datetime.tzinfo = None):
+        if cached_days_num < 0:
+            raise ValueError("The number of cached days shouldn't be negative")
         self.schedule_addr = schedule_addr
         self.highlight_color = highlight_color
         self.offset = offset
+        self.cached_days_num = cached_days_num
         self.tz = tz
         self._set_prefix()
         self.db = sqlite3.connect(self.dbname, check_same_thread=False)
@@ -131,7 +135,7 @@ class ScheduleHandler:
         """
         logging.info(f'flushing database {self.dbname}')
         today = datetime.date.today()
-        past_date = (today - datetime.timedelta(days=5)).strftime("%Y%m%d000000")
+        past_date = (today - datetime.timedelta(days=self.cached_days_num)).strftime("%Y%m%d000000")
         prev_date = (today - datetime.timedelta(days=1)).strftime("%Y%m%d235900")
         try:
             self.c.execute("DELETE FROM program WHERE start < ? OR start > ?",
