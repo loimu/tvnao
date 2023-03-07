@@ -240,13 +240,13 @@ class MainWindow(QtWidgets.QWidget):
                                not in item.text().lower())
                 row += 1
             return
-        self.play(data[0])
+        title = selected_item.text() + self.sh.get_current_program(data[1])
+        self.play(data[0], title)
 
     @pyqtSlot(str, str)
-    def play(self, url, title=None):
+    def play(self, url, title=''):
         command = [self.player]
         if self.player.count('mpv'):
-            title = title if title else self.ui.listWidget.currentItem().text()
             command.append('--force-media-title=' + title)
         command += self.options.split()
         command.append(url)
