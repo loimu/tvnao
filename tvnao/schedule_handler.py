@@ -131,7 +131,7 @@ class ScheduleHandler:
 
     def _flush_database(self) -> None:
         """
-            Flushes records older than five days or newer than yesterday
+            Flushes records omitting the records from cached days
         """
         logging.info(f'flushing database {self.dbname}')
         today = datetime.date.today()
@@ -245,3 +245,12 @@ class ScheduleHandler:
                    "{}:{}".format(str(start)[-6:-4], str(start)[-4:-2]),
                    self._cut(note)
                    )
+
+    def get_current_program(self, channel: str):
+        note = ""
+        curr_time = self._get_current_time()
+        for (note) in self.c.execute(
+                "SELECT desc FROM program "
+                "WHERE channel = ? AND stop > ? LIMIT 1;", (channel, curr_time)):
+            pass
+        return note
