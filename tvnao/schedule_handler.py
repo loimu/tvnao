@@ -253,4 +253,4 @@ class ScheduleHandler:
                 "SELECT desc FROM program "
                 "WHERE channel = ? AND stop > ? LIMIT 1;", (channel, curr_time)):
             pass
-        return note
+        return self._cut(note)
