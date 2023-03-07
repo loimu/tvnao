@@ -247,6 +247,7 @@ class ScheduleHandler:
                    )
 
     def get_current_program(self, channel: str):
+        note = ""
         curr_time = self._get_current_time()
         for (note) in self.c.execute(
                 "SELECT desc FROM program "
