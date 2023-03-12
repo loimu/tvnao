@@ -183,6 +183,7 @@ class ScheduleHandler:
                                 pass
         archive.close()
         self.db.commit()
+        logging.info(f'database {self.dbname} is ready')
 
     def _cut(self, text):
         return text if len(text) < 65 else text[:text.rfind('.', 0, 65)]
@@ -249,8 +250,9 @@ class ScheduleHandler:
     def get_current_program(self, channel: str):
         note = ""
         curr_time = self._get_current_time()
-        for (note) in self.c.execute(
+        for (note,) in self.c.execute(
                 "SELECT desc FROM program "
-                "WHERE channel = ? AND stop > ? LIMIT 1;", (channel, curr_time)):
+                "WHERE channel = ? AND stop > ? LIMIT 1;",
+                (channel, curr_time)):
             pass
-        return self._cut(" -- " + note[0])
+        return " -- " + self._cut(note) if len(note) else ""
