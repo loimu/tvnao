@@ -255,4 +255,4 @@ class ScheduleHandler:
                 "WHERE channel = ? AND stop > ? LIMIT 1;",
                 (channel, curr_time)):
             pass
-        return " -- " + self._cut(note) if len(note) else ""
+        return " -- " + self._cut(note) if len(note) else note
