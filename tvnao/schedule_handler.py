@@ -196,7 +196,7 @@ class ScheduleHandler:
         text = ""
         curr_color = self.highlight_color
         curr_time = self._get_current_time()
-        format = lambda x, y, z:\
+        format = lambda x, y, z: \
             "<tr{}><td><b>{}:{}</b></td><td><span>{}</span></td></tr>"\
             .format(x, str(y)[-6:-4], str(y)[-4:-2], z)
         if not full_day:
@@ -223,7 +223,7 @@ class ScheduleHandler:
     def get_overview(self, channel_map: dict) -> str:
         text = ""
         curr_time = self._get_current_time()
-        format = lambda w, x, y, z:\
+        format = lambda w, x, y, z: \
             "<tr><td>{}</td><td><b>{}:{}..{}:{}</b></td>"\
             "<td><span>{}</span></td></tr>\r\n"\
             .format(

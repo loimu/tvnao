@@ -50,6 +50,7 @@ class MainWindow(QtWidgets.QWidget):
     process = None
     search_term = ""
     folded = False
+    background = False
     bookmarks = []
 
     def __init__(self):
@@ -132,6 +133,9 @@ class MainWindow(QtWidgets.QWidget):
 
     def show(self):
         super(MainWindow, self).show()
+
+    def refresh(self, background=False):
+        self.background = background
         self.refresh_list_wrapper()
 
     def load_settings(self):
@@ -155,16 +159,18 @@ class MainWindow(QtWidgets.QWidget):
         self.thread_pool.start(list_worker)
 
     def refresh_list(self):
-        playlist, status, lists, offset, response = "", [], [], 0, None
+        playlist, status, lists, offs, response = "", [], [], 0, None
         self.view_bookmarks_action.setChecked(False)
+        if self.background:
+            offs += 1
         if not self.playlist_addr:
-            self.playlist_addr = sys.argv[1] if len(sys.argv) > 1 else ""
-            offset = 1
+            offs += 1
+            self.playlist_addr = sys.argv[offs] if len(sys.argv) > offs else ""
         if not self.playlist_addr:
             return ("Please give a playlist address, either through settings "
                     "or as an application argument.")
         lists = [self.playlist_addr] +\
-            (sys.argv[1 + offset:] if len(sys.argv) > 1 + offset else [])
+            (sys.argv[offs+1:] if len(sys.argv) > offs+1 else [])
         for list in lists:
             logging.info(f'getting remote playlist {list}')
             if not list.startswith('http'):
@@ -318,7 +324,7 @@ class MainWindow(QtWidgets.QWidget):
 
     def load_guide_wrapper(self):
         self.guide_worker = Worker(self.load_guide_archive)
-        self.guide_worker.signals.signal_finished.connect(self.update_guide)
+        self.guide_worker.signals.signal_finished.connect(self.quit if self.background else self.update_guide)
         self.thread_pool.start(self.guide_worker)
 
     def load_guide_archive(self):
@@ -391,7 +397,7 @@ class MainWindow(QtWidgets.QWidget):
     def show_about(self):
         QtWidgets.QMessageBox.about(
             self, "About tvnao",
-            "<p><b>tvnao</b> v0.12.2 &copy; 2016-2023 Blaze</p>"
+            "<p><b>tvnao</b> v0.12.3 &copy; 2016-2024 Blaze</p>"
             "<p>&lt;blaze@vivaldi.net&gt;</p>"
             "<p><a href=\"https://launchpad.net/tvnao\">"
             "https://launchpad.net/tvnao</a></p>")
@@ -412,5 +418,8 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     tv_widget = MainWindow()
     tv_widget.setWindowIcon(QIcon.fromTheme('video-television'))
-    tv_widget.show()
+    update = len(sys.argv) == 2 and sys.argv[1] == '--update'
+    if not update:
+        tv_widget.show()
+    tv_widget.refresh(update)
     sys.exit(app.exec_())
