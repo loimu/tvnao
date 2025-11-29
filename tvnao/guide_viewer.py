@@ -1,9 +1,9 @@
-# Copyright (c) 2016-2023 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2025 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import QSettings, pyqtSlot
+from PyQt6 import QtWidgets, QtGui, QtCore
+from PyQt6.QtCore import QSettings, pyqtSlot
 
 from .guide_viewer_dialog import Ui_GuideViewerDialog
 
@@ -28,7 +28,7 @@ class GuideViewer(QtWidgets.QDialog):
         self.ui.nextButton.released.connect(lambda: self.step(1))
         self.ui.dateEdit.dateChanged.connect(self.show_guide)
         self.ui.dateEdit.setDate(QtCore.QDate().currentDate())
-        refresh_action = QtWidgets.QAction(self)
+        refresh_action = QtGui.QAction(self)
         refresh_action.setShortcut('Ctrl+R')
         refresh_action.triggered.connect(self.show_guide)
         self.addAction(refresh_action)

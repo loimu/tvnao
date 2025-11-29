@@ -1,11 +1,11 @@
-# Copyright (c) 2016-2023 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2025 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
 import datetime
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import QSettings, QDate, pyqtSlot, pyqtSignal, Qt
+from PyQt6 import QtWidgets
+from PyQt6.QtCore import QSettings, QDate, pyqtSlot, pyqtSignal, Qt
 
 from tvnao.settings import SettingsHelper
 from tvnao.timeshift_dialog import Ui_TimeshiftDialog

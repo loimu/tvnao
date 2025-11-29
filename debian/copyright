@@ -3,7 +3,7 @@ Upstream-Name: tvnao
 Source: https://launchpad.net/tvnao
 
 Files: *
-Copyright: 2016-2021 blaze <blaze@vivaldi.net>
+Copyright: 2016-2025 blaze <blaze@vivaldi.net>
 License: GPL-3+
 
 License: GPL-3+
@@ -24,5 +24,5 @@ License: GPL-3+
  Public License version 3 can be found in "/usr/share/common-licenses/GPL-3".
 
 Files: debian/*
-Copyright: 2021 blaze <blaze@vivaldi.net>
+Copyright: 2025 blaze <blaze@vivaldi.net>
 License: GPL-3+

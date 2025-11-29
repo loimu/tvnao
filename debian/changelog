@@ -1,4 +1,11 @@
-tvnao (0.12.2-0) UNRELEASED; urgency=medium
+tvnao (0.13.0-0) UNRELEASED; urgency=medium
+
+  * New upstream release
+    - Port to PyQt6
+
+ -- blaze <blaze@vivaldi.net>  Sat, 29 Nov 2025 21:50:01 +0300
+
+tvnao (0.12.2-0) sid; urgency=medium
 
   * New upstream release
     - minor fix

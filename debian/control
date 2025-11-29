@@ -9,7 +9,7 @@ Homepage: https://launchpad.net/tvnao
 Package: tvnao
 Architecture: all
 Depends: ${misc:Depends}, ${python3:Depends},
- python3-pyqt5, mpv | mplayer
+ python3-pyqt6, mpv | mplayer
 Description: Open IPTV list manager
  A convenience utility meant to improve IPTV
  watching experience with mpv player.

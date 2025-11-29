@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2023 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2025 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
@@ -10,10 +10,10 @@ import signal
 import re
 import logging
 
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal,
+from PyQt6 import QtWidgets, QtGui
+from PyQt6.QtCore import (pyqtSlot, pyqtSignal,
                           QObject, QThreadPool, QRunnable, Qt)
-from PyQt5.QtGui import QIcon, QPalette
+from PyQt6.QtGui import QIcon, QPalette
 
 from .tvnao_widget import Ui_Form
 from .settings import SettingsHelper, SettingsDialog
@@ -61,30 +61,30 @@ class MainWindow(QtWidgets.QWidget):
         if not QIcon.hasThemeIcon('video-television'):
             QIcon.setThemeName("breeze")
         # actions setup
-        clear_action = QtWidgets.QAction(self)
+        clear_action = QtGui.QAction(self)
         clear_action.setShortcut('Esc')
         clear_action.triggered.connect(self.ui.lineEditFilter.clear)
-        fold_action = QtWidgets.QAction(self)
+        fold_action = QtGui.QAction(self)
         fold_action.setShortcut('Ctrl+F')
         fold_action.triggered.connect(self.fold_everything)
-        search_action = QtWidgets.QAction(self)
+        search_action = QtGui.QAction(self)
         search_action.setShortcut('Ctrl+S')
         search_action.triggered.connect(self.ui.lineEditFilter.setFocus)
-        timeshift_action = QtWidgets.QAction(self)
+        timeshift_action = QtGui.QAction(self)
         timeshift_action.setShortcut('Ctrl+T')
         timeshift_action.triggered.connect(self.show_timeshift_dialog)
         self.addActions([clear_action, fold_action, search_action, timeshift_action])
-        copy_action = QtWidgets.QAction('Copy address', self)
+        copy_action = QtGui.QAction('Copy address', self)
         copy_action.setShortcut('Ctrl+Shift+C')
         copy_action.setIcon(QIcon.fromTheme('edit-copy'))
         self.ui.listWidget.addAction(copy_action)
         copy_action.triggered.connect(self.copy_to_clipboard)
-        bookmark_action = QtWidgets.QAction('Bookmark Current', self)
+        bookmark_action = QtGui.QAction('Bookmark Current', self)
         bookmark_action.setShortcut('Ctrl+Shift+B')
         bookmark_action.setIcon(QIcon.fromTheme('bookmark-new'))
         bookmark_action.triggered.connect(self.bookmark_current)
         self.ui.listWidget.addAction(bookmark_action)
-        unbookmark_action = QtWidgets.QAction('Remove from Bookmarks', self)
+        unbookmark_action = QtGui.QAction('Remove from Bookmarks', self)
         unbookmark_action.setShortcut('Ctrl+Shift+R')
         unbookmark_action.setIcon(QIcon.fromTheme('bookmark-remove'))
         unbookmark_action.triggered.connect(self.bookmark_remove)
@@ -99,11 +99,11 @@ class MainWindow(QtWidgets.QWidget):
         self.ui.buttonGuide.setShortcut('Ctrl+G')
         menu = QtWidgets.QMenu(self)
         menu.addAction(QIcon.fromTheme('view-refresh'),
-                       '&Refresh', self.refresh_forced, 'Ctrl+R')
+                       '&Refresh', 'Ctrl+R', self.refresh_forced)
         menu.addAction(QIcon.fromTheme('view-calendar-list'),
-                       '&Viewer', self.show_guide_viewer, 'Ctrl+V')
+                       '&Viewer', 'Ctrl+V', self.show_guide_viewer)
         menu.addAction(QIcon.fromTheme('configure'),
-                       '&Settings', self.show_settings, 'Ctrl+P')
+                       '&Settings', 'Ctrl+P', self.show_settings)
         self.view_bookmarks_action = menu.addAction(
             QIcon.fromTheme('bookmarks-organize'), '&Bookmarks')
         self.view_bookmarks_action.setShortcut('Ctrl+B')
@@ -114,16 +114,14 @@ class MainWindow(QtWidgets.QWidget):
                        '&About', self.show_about)
         menu.addSeparator()
         menu.addAction(QIcon.fromTheme('application-exit'),
-                       '&Quit', self.quit, 'Ctrl+Q')
+                       '&Quit', 'Ctrl+Q', self.quit)
         for action in menu.actions():
             action.setShortcutVisibleInContextMenu(True)
-        self.ui.listWidget.setContextMenuPolicy(Qt.ActionsContextMenu)
+        self.ui.listWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.ActionsContextMenu)
         self.ui.buttonMenu.setIcon(QIcon.fromTheme('video-television'))
         self.ui.buttonMenu.setMenu(menu)
         self.ui.buttonGo.setIcon(QIcon.fromTheme('media-playback-start'))
         self.set_guide_visibility(False)
-        QtWidgets.QScroller.grabGesture(
-            self.ui.listWidget, QtWidgets.QScroller.TouchGesture)
         # init
         self.settings_helper = SettingsHelper()
         self.settings = self.settings_helper.get_settings()
@@ -204,7 +202,7 @@ class MainWindow(QtWidgets.QWidget):
                     item.setIcon(QIcon.fromTheme('folder-bookmark'))
                 else:
                     item.setIcon(QIcon.fromTheme('video-webm'))
-                item.setData(Qt.UserRole, (line, id))
+                item.setData(Qt.ItemDataRole.UserRole, (line, id))
                 self.ui.listWidget.addItem(item)
         return ' '.join(status)
 
@@ -220,7 +218,7 @@ class MainWindow(QtWidgets.QWidget):
         self.folded = False
         self.search_term = string
         for item in self.ui.listWidget.findItems("", Qt.MatchContains):
-            data = item.data(Qt.UserRole)
+            data = item.data(Qt.ItemDataRole.UserRole)
             check = self.view_bookmarks_action.isChecked()
             item.setHidden(
                 (not check and string.lower() not in item.text().lower()
@@ -235,12 +233,12 @@ class MainWindow(QtWidgets.QWidget):
         selected_item = self.ui.listWidget.currentItem()
         if not selected_item:
             return
-        data = selected_item.data(Qt.UserRole)
+        data = selected_item.data(Qt.ItemDataRole.UserRole)
         if not data:
             self.folded = False
             row = self.ui.listWidget.currentRow() + 1
             while row < self.ui.listWidget.count()\
-                    and bool(self.ui.listWidget.item(row).data(Qt.UserRole)):
+                    and bool(self.ui.listWidget.item(row).data(Qt.ItemDataRole.UserRole)):
                 item = self.ui.listWidget.item(row)
                 item.setHidden(not item.isHidden() or self.search_term.lower()
                                not in item.text().lower())
@@ -292,7 +290,7 @@ class MainWindow(QtWidgets.QWidget):
                 or self.ui.listWidget.count() < 1:
             return
         item = self.ui.listWidget.currentItem()
-        data = item.data(Qt.UserRole) if item else None
+        data = item.data(Qt.ItemDataRole.UserRole) if item else None
         if data:
             date = datetime.date.today()
             if self.ui.guideNextButton.isChecked():
@@ -318,7 +316,7 @@ class MainWindow(QtWidgets.QWidget):
         self.update_guide()
 
     def copy_to_clipboard(self):
-        data = self.ui.listWidget.currentItem().data(Qt.UserRole)
+        data = self.ui.listWidget.currentItem().data(Qt.ItemDataRole.UserRole)
         if bool(data):
             QtWidgets.QApplication.clipboard().setText(data[0])
 
@@ -328,14 +326,14 @@ class MainWindow(QtWidgets.QWidget):
         self.thread_pool.start(self.guide_worker)
 
     def load_guide_archive(self):
-        highlight_color = (self.palette().color(QPalette().Link)).name()
+        highlight_color = (self.palette().color(QPalette().ColorRole.Link)).name()
         self.sh = ScheduleHandler(self.guide_addr, highlight_color)
 
     def fold_everything(self):
         self.view_bookmarks_action.setChecked(False)
         for item in self.ui.listWidget.findItems("", Qt.MatchContains):
             item.setHidden((self.search_term.lower() not in item.text().lower()
-                            or not self.folded) and bool(item.data(Qt.UserRole)))
+                            or not self.folded) and bool(item.data(Qt.ItemDataRole.UserRole)))
         self.folded = not self.folded
 
     def show_settings(self):
@@ -346,8 +344,8 @@ class MainWindow(QtWidgets.QWidget):
     def show_guide_viewer(self):
         item = self.ui.listWidget.currentItem()
         channel = "" if not item else item.text()
-        list = [(x.text(), x.data(Qt.UserRole)[1]) for x in self.ui.listWidget
-                .findItems("", Qt.MatchContains) if bool(x.data(Qt.UserRole))]
+        list = [(x.text(), x.data(Qt.ItemDataRole.UserRole)[1]) for x in self.ui.listWidget
+                .findItems("", Qt.MatchFlag.MatchContains) if bool(x.data(Qt.ItemDataRole.UserRole))]
         gv = GuideViewer(self, self.sh, list, channel)
         gv.show()
         self.guide_worker.signals.signal_finished.\
@@ -357,7 +355,7 @@ class MainWindow(QtWidgets.QWidget):
         if self.ui.listWidget.count() < 1:
             return
         item = self.ui.listWidget.currentItem()
-        data = item.data(Qt.UserRole) if item else None
+        data = item.data(Qt.ItemDataRole.UserRole) if item else None
         if data:
             title = self.ui.listWidget.currentItem().text()
             td = Timeshift(self, self.sh, title, data[1], self.settings_helper)
@@ -368,7 +366,7 @@ class MainWindow(QtWidgets.QWidget):
         if self.ui.listWidget.count() < 1:
             return
         item = self.ui.listWidget.currentItem()
-        data = item.data(Qt.UserRole)
+        data = item.data(Qt.ItemDataRole.UserRole)
         if data and data[1] not in self.bookmarks:
             self.bookmarks.append(data[1])
             item.setIcon(QIcon.fromTheme('folder-bookmark'))
@@ -377,14 +375,14 @@ class MainWindow(QtWidgets.QWidget):
         if self.ui.listWidget.count() < 1:
             return
         item = self.ui.listWidget.currentItem()
-        data = item.data(Qt.UserRole)
+        data = item.data(Qt.ItemDataRole.UserRole)
         if data and data[1] in self.bookmarks:
             self.bookmarks.remove(data[1])
             item.setIcon(QIcon.fromTheme('video-webm'))
 
     def view_bookmarks(self, check):
-        for item in self.ui.listWidget.findItems("", Qt.MatchContains):
-            data = item.data(Qt.UserRole)
+        for item in self.ui.listWidget.findItems("", Qt.MatchFlag.MatchContains):
+            data = item.data(Qt.ItemDataRole.UserRole)
             item.setHidden(
                 (not check and self.search_term.lower() not in item.text().lower()
                  and bool(data))
@@ -397,7 +395,7 @@ class MainWindow(QtWidgets.QWidget):
     def show_about(self):
         QtWidgets.QMessageBox.about(
             self, "About tvnao",
-            "<p><b>tvnao</b> v0.12.3 &copy; 2016-2024 Blaze</p>"
+            "<p><b>tvnao</b> v0.13.0 &copy; 2016-2025 Blaze</p>"
             "<p>&lt;blaze@vivaldi.net&gt;</p>"
             "<p><a href=\"https://launchpad.net/tvnao\">"
             "https://launchpad.net/tvnao</a></p>")
@@ -406,7 +404,8 @@ class MainWindow(QtWidgets.QWidget):
         self.settings.setValue('main/bookmarks', self.bookmarks)
         self.hide()
         self.thread_pool.waitForDone()
-        self.close()
+        app = QtWidgets.QApplication(sys.argv)
+        app.closeAllWindows()
 
 
 def main():
@@ -422,4 +421,4 @@ def main():
     if not update:
         tv_widget.show()
     tv_widget.refresh(update)
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

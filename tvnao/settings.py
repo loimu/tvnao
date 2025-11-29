@@ -1,12 +1,12 @@
-# Copyright (c) 2016-2023 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2025 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
 import sys
 import subprocess
 
-from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtCore import QSettings, pyqtSlot
+from PyQt6 import QtWidgets, QtGui
+from PyQt6.QtCore import QSettings, pyqtSlot
 
 from .settings_dialog import Ui_Dialog
 
