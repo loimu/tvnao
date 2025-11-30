@@ -47,7 +47,7 @@ class Timeshift(QtWidgets.QDialog):
         date = self.ui.dateEdit.date().toString("yyyyMMdd")
         for entry in self.sh.get_timeshift_list(date, self.channel_id):
             item = QtWidgets.QListWidgetItem(entry[2] + " " + entry[3])
-            item.setData(Qt.UserRole, (entry[0], entry[1]))
+            item.setData(Qt.ItemDataRole.UserRole, (entry[0], entry[1]))
             self.ui.listWidget.addItem(item)
 
     def _activate_item(self):
@@ -65,7 +65,7 @@ class Timeshift(QtWidgets.QDialog):
             else:
                 self.replacements[self.channel_id] = channel_id
         item = self.ui.listWidget.currentItem()
-        data = item.data(Qt.UserRole)
+        data = item.data(Qt.ItemDataRole.UserRole)
         start = datetime.datetime.strptime(str(data[0]), "%Y%m%d%H%M%S")
         stop = datetime.datetime.strptime(str(data[1]), "%Y%m%d%H%M%S")
         diff_time = int((stop - start).total_seconds())
