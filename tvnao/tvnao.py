@@ -400,12 +400,15 @@ class MainWindow(QtWidgets.QWidget):
             "<p><a href=\"https://launchpad.net/tvnao\">"
             "https://launchpad.net/tvnao</a></p>")
 
+    def closeEvent(self, event):
+        self.settings.setValue('main/bookmarks', self.bookmarks)
+        self.thread_pool.waitForDone()
+        super(MainWindow, self).closeEvent(event)
+
     def quit(self):
         self.settings.setValue('main/bookmarks', self.bookmarks)
-        self.hide()
         self.thread_pool.waitForDone()
-        app = QtWidgets.QApplication(sys.argv)
-        app.closeAllWindows()
+        self.close()
 
 
 def main():
