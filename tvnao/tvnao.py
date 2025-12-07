@@ -217,7 +217,7 @@ class MainWindow(QtWidgets.QWidget):
     def filter(self, string):
         self.folded = False
         self.search_term = string
-        for item in self.ui.listWidget.findItems("", Qt.MatchContains):
+        for item in self.ui.listWidget.findItems("", Qt.MatchFlag.MatchContains):
             data = item.data(Qt.ItemDataRole.UserRole)
             check = self.view_bookmarks_action.isChecked()
             item.setHidden(
@@ -331,7 +331,7 @@ class MainWindow(QtWidgets.QWidget):
 
     def fold_everything(self):
         self.view_bookmarks_action.setChecked(False)
-        for item in self.ui.listWidget.findItems("", Qt.MatchContains):
+        for item in self.ui.listWidget.findItems("", Qt.MatchFlag.MatchContains):
             item.setHidden((self.search_term.lower() not in item.text().lower()
                             or not self.folded) and bool(item.data(Qt.ItemDataRole.UserRole)))
         self.folded = not self.folded
