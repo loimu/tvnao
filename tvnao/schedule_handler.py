@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2023 Blaze <blaze@vivaldi.net>
+# Copyright (c) 2016-2025 Blaze <blaze@vivaldi.net>
 # Licensed under the GNU General Public License, version 3 or later.
 # See the file http://www.gnu.org/copyleft/gpl.txt.
 
@@ -19,14 +19,12 @@ class ScheduleHandler:
     db = None
 
     def __init__(self, schedule_addr: str,
-                 highlight_color: str = 'indigo',
                  offset: float = 0.0,
                  cached_days_num: int = 5,
                  tz: datetime.tzinfo = None):
         if cached_days_num < 0:
             raise ValueError("The number of cached days shouldn't be negative")
         self.schedule_addr = schedule_addr
-        self.highlight_color = highlight_color
         self.offset = offset
         self.cached_days_num = cached_days_num
         self.tz = tz
@@ -192,9 +190,9 @@ class ScheduleHandler:
         return int(datetime.datetime.now(self.tz).strftime("%Y%m%d%H%M%S"))
 
     def get_schedule(self,
-                     date: str, channel: str, full_day: bool = False) -> str:
+                     date: str, channel: str, full_day: bool = False,
+                     curr_color: str = 'indigo') -> str:
         text = ""
-        curr_color = self.highlight_color
         curr_time = self._get_current_time()
         format = lambda x, y, z: \
             "<tr{}><td><b>{}:{}</b></td><td><span>{}</span></td></tr>"\

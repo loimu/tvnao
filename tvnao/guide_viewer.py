@@ -45,7 +45,8 @@ class GuideViewer(QtWidgets.QDialog):
         if index > -1 and self.sh:
             if self.channels[index]:
                 date = self.ui.dateEdit.date().toString("yyyyMMdd")
-                text = self.sh.get_schedule(date, self.channels[index], True)
+                curr_color = (self.palette().color(QtGui.QPalette().ColorRole.Link)).name()
+                text = self.sh.get_schedule(date, self.channels[index], True, curr_color)
                 self.ui.textBrowser.setText(text)
             else:
                 channel_map = {}

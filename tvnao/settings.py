@@ -13,6 +13,7 @@ from .settings_dialog import Ui_Dialog
 
 class SettingsHelper():
     settings = QSettings('tvnao', 'tvnao')
+    configured = 'tvnao/configured_1'
     defaults = {
         'playlist/addr':    '',
         'player/options':   '--network-timeout=60 --no-ytdl '
@@ -22,11 +23,11 @@ class SettingsHelper():
         'timeshift/host':   '',
         'timeshift/port':   '',
         'timeshift/repl':   {},
-        'tvnao/configured_1': True
+        configured:         True
     }
 
     def first_run(self):
-        if bool(self.settings.value('tvnao/configured_1')):
+        if bool(self.settings.value(self.configured)):
             return
         for entry in self.defaults:
             self.settings.setValue(entry, self.defaults[entry])

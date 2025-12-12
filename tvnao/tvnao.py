@@ -50,14 +50,12 @@ class MainWindow(QtWidgets.QWidget):
     process = None
     search_term = ""
     folded = False
-    background = False
     bookmarks = []
 
     def __init__(self):
         super(MainWindow, self).__init__()
         self.ui = Ui_Form()
         self.ui.setupUi(self)
-        logging.getLogger().setLevel(logging.DEBUG)
         if not QIcon.hasThemeIcon('video-television'):
             QIcon.setThemeName("breeze")
         # actions setup
@@ -132,8 +130,7 @@ class MainWindow(QtWidgets.QWidget):
     def show(self):
         super(MainWindow, self).show()
 
-    def refresh(self, background=False):
-        self.background = background
+    def refresh(self):
         self.refresh_list_wrapper()
 
     def load_settings(self):
@@ -159,8 +156,6 @@ class MainWindow(QtWidgets.QWidget):
     def refresh_list(self):
         playlist, status, lists, offs, response = "", [], [], 0, None
         self.view_bookmarks_action.setChecked(False)
-        if self.background:
-            offs += 1
         if not self.playlist_addr:
             offs += 1
             self.playlist_addr = sys.argv[offs] if len(sys.argv) > offs else ""
@@ -298,7 +293,8 @@ class MainWindow(QtWidgets.QWidget):
             date_str = date.strftime("%Y%m%d")
             all_day = self.ui.guideNextButton.isChecked()\
                 or self.ui.guideFullButton.isChecked()
-            text = self.sh.get_schedule(date_str, data[1], all_day)\
+            curr_color = (self.palette().color(QPalette().ColorRole.Link)).name()
+            text = self.sh.get_schedule(date_str, data[1], all_day, curr_color)\
                 if self.sh else "loading…"
             self.ui.guideBrowser.setText(text)
             self.ui.guideBrowser.setToolTip(text)
@@ -322,12 +318,11 @@ class MainWindow(QtWidgets.QWidget):
 
     def load_guide_wrapper(self):
         self.guide_worker = Worker(self.load_guide_archive)
-        self.guide_worker.signals.signal_finished.connect(self.quit if self.background else self.update_guide)
+        self.guide_worker.signals.signal_finished.connect(self.update_guide)
         self.thread_pool.start(self.guide_worker)
 
     def load_guide_archive(self):
-        highlight_color = (self.palette().color(QPalette().ColorRole.Link)).name()
-        self.sh = ScheduleHandler(self.guide_addr, highlight_color)
+        self.sh = ScheduleHandler(self.guide_addr)
 
     def fold_everything(self):
         self.view_bookmarks_action.setChecked(False)
@@ -411,17 +406,42 @@ class MainWindow(QtWidgets.QWidget):
         self.close()
 
 
+def update_guide():
+    settings = SettingsHelper().get_settings()
+    guide_addr = settings.value('guide/addr', type=str)
+    if not guide_addr:
+        playlist, status, response = "", [], None
+        playlist_addr = settings.value('playlist/addr', type=str)
+        try:
+            response = request.urlopen(playlist_addr)
+        except error.URLError as e:
+            status.append(str(e.reason))
+        except ValueError as e:
+            status.append(str(e))
+        playlist += response.read().decode('utf-8') if response else ""
+        for line in playlist.splitlines():
+            if line.startswith('#EXTM3U'):
+                match = re.match(r'.*url-tvg=([^\s,]*).*', line)
+                guide_addr = match.group(1).strip('"') if match else ""
+                break
+    if guide_addr:
+        ScheduleHandler(guide_addr)
+
+
 def main():
+    logging.getLogger().setLevel(logging.DEBUG)
     if sys.hexversion < 0x030600f0:
         logging.error("E: python version is too old, 3.6 or higher needed")
         sys.exit(1)
     if 'linux' in sys.platform:
         signal.signal(signal.SIGCHLD, signal.SIG_IGN)
+    update = len(sys.argv) == 2 and sys.argv[1] == '--update'
+    if update:
+        update_guide()
+        return
     app = QtWidgets.QApplication(sys.argv)
     tv_widget = MainWindow()
     tv_widget.setWindowIcon(QIcon.fromTheme('video-television'))
-    update = len(sys.argv) == 2 and sys.argv[1] == '--update'
-    if not update:
-        tv_widget.show()
-    tv_widget.refresh(update)
+    tv_widget.show()
+    tv_widget.refresh()
     sys.exit(app.exec())
